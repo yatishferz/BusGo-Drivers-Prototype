@@ -1,0 +1,50 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Setter</title>
+<style>
+  body{font:16px system-ui;padding:40px;background:#111;color:#eee}
+  button{font:inherit;padding:10px 18px;margin-right:8px;cursor:pointer}
+  code{background:#222;padding:2px 6px;border-radius:4px}
+</style>
+
+<h2>Setter page</h2>
+<p>Target temperature: <strong id="val">--</strong> &deg;C</p>
+<button onclick="bump(-1)">&minus;1</button>
+<button onclick="bump(+1)">+1</button>
+
+<p style="margin-top:30px;color:#888">
+  Open <code>reader.html</code> in a second tab and watch it follow along.
+</p>
+
+<script>
+// ── THE KEY. Both pages must agree on this string, or nothing works. ──
+const KEY = 'demo:thermostat';
+
+// ── READ ──
+// localStorage only stores STRINGS. So everything goes through JSON.
+// If the key was never written, getItem returns null — handle that.
+function load() {
+  const raw = localStorage.getItem(KEY);
+  return raw ? JSON.parse(raw) : { temp: 22, updatedAt: null };
+}
+
+// ── WRITE ──
+// setItem is what fires the 'storage' event in OTHER tabs.
+function save(state) {
+  localStorage.setItem(KEY, JSON.stringify(state));
+}
+
+function bump(delta) {
+  const state = load();
+  state.temp += delta;
+  state.updatedAt = new Date().toISOString();
+  save(state);
+  render();          // <-- see GOTCHA in reader.html
+}
+
+function render() {
+  document.getElementById('val').textContent = load().temp;
+}
+
+render();
+</script>

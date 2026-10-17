@@ -1,0 +1,47 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Reader</title>
+<style>
+  body{font:16px system-ui;padding:40px;background:#111;color:#eee}
+  #val{font-size:48px}
+  #log{margin-top:24px;color:#888;font-size:13px;white-space:pre-line}
+</style>
+
+<h2>Reader page</h2>
+<div id="val">--</div>
+<div id="log"></div>
+
+<script>
+const KEY = 'demo:thermostat';   // same string as setter.html
+
+function load() {
+  const raw = localStorage.getItem(KEY);
+  return raw ? JSON.parse(raw) : { temp: 22, updatedAt: null };
+}
+
+function render() {
+  const s = load();
+  document.getElementById('val').textContent = s.temp + ' °C';
+}
+
+// ── THE BRIDGE ──
+// The 'storage' event fires when ANOTHER tab on the same origin
+// writes to localStorage. This is the whole mechanism.
+window.addEventListener('storage', (e) => {
+  if (e.key !== KEY) return;              // ignore unrelated keys
+  render();
+  log('storage event: ' + e.oldValue + '  ->  ' + e.newValue);
+});
+
+// ── GOTCHA (this is the bit that wastes everyone's afternoon) ──
+// The 'storage' event does NOT fire in the tab that did the writing.
+// That is why setter.html calls render() itself after save().
+// A page must update its own UI directly AND listen for other tabs.
+
+function log(msg) {
+  document.getElementById('log').textContent =
+    msg + '\n' + document.getElementById('log').textContent;
+}
+
+render();
+</script>
