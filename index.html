@@ -2,9 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="theme-color" content="#0f52ba"/>
 <title>BusGo — passenger</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
@@ -12,14 +14,23 @@
 </head>
 <body>
 
-<header class="topbar">
-  <div class="logo">Bus<span>Go</span><small>passenger</small></div>
-  <nav class="nav-tabs">
-    <button class="nav-tab active" data-page="home" onclick="showPage('home')">Home</button>
-    <button class="nav-tab" data-page="map" onclick="showPage('map')">Map</button>
-    <button class="nav-tab" data-page="access" onclick="showPage('access')">Help boarding</button>
-    <a class="nav-tab" href="driver.html">Driver screen →</a>
+<header class="appbar">
+  <a class="wordmark" href="#" onclick="showPage('home');return false;">BusGo <small>passenger</small></a>
+  <nav class="tabbar" aria-label="Sections">
+    <button class="tab active" data-page="home" onclick="showPage('home')">
+      <svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg>Home
+    </button>
+    <button class="tab" data-page="map" onclick="showPage('map')">
+      <svg viewBox="0 0 24 24"><path d="M9 4l6 2 6-2v14l-6 2-6-2-6 2V6z"/><path d="M9 4v14M15 6v14"/></svg>Map
+    </button>
+    <button class="tab" data-page="access" onclick="showPage('access')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="4.5" r="2"/><path d="M10 9h6l3 5M10 9l-1 6h5l2 5M10 9a5 5 0 1 0 5 9"/></svg>Help
+    </button>
+    <a class="tab" href="driver.html">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5"/><path d="M12 3v6.5M4 15l5.6-2M20 15l-5.6-2"/></svg>Driver
+    </a>
   </nav>
+  <span class="route-chip" aria-label="Route 219K">219K</span>
 </header>
 
 <main>
@@ -27,158 +38,200 @@
   <!-- ================= HOME ================= -->
   <section class="page active" id="page-home">
 
-    <!-- Driver 8 asked "is it like Rapido or Uber?". This sentence is the answer, and it comes first. -->
-    <div class="what-is-this" id="what-is-this">
-      <strong>BusGo</strong> is for the city bus you already take: report potholes on its route, see which ones are confirmed, and ask for help boarding. It does <strong>not</strong> book cabs or bikes — it is not Rapido or Uber.
+    <!-- Driver 8 asked "is it like Rapido or Uber?". This is the answer, and it comes first. -->
+    <div class="band" id="what-is-this">
+      <p><span><b>BusGo</b> is for the city bus you already take: report potholes on its route, see which ones are confirmed, and ask for help boarding. It does <b>not</b> book cabs or bikes. It is not Rapido or Uber.</span></p>
     </div>
 
-    <h1>Route 219K. <em>Verified</em> potholes.<br>Help boarding.</h1>
-    <p class="lede">Secunderabad → Miyapur, 12 stops. Reports from passengers and drivers land on one map.</p>
+    <div class="wrap">
+      <div class="poster">
+        <h1>Potholes on the 219K.</h1>
+        <p>Secunderabad to Miyapur, twelve stops. Reported by passengers and drivers, shown on one line.</p>
+      </div>
 
-    <div class="grid2" style="margin-top:16px;">
-      <button class="btn btn-primary" onclick="showPage('map')">Open the map</button>
-      <button class="btn" onclick="openReport()">Report a road problem</button>
-      <button class="btn" onclick="showPage('access')">Ask for help boarding</button>
-      <a class="btn btn-ghost" href="driver.html">See the driver screen</a>
+      <!-- the route strip: drawn by renderStrip() in the script below -->
+      <div class="strip-wrap"><svg class="strip" id="strip" aria-label="Route 219K with reported spots"></svg></div>
+      <div class="strip-legend">
+        <span><svg viewBox="0 0 14 14"><path d="M7 1l6 12H1z" fill="#d7263d"/></svg>Confirmed</span>
+        <span><svg viewBox="0 0 14 14"><path d="M7 2l5 10H2z" fill="#fff" stroke="#9aa3ad" stroke-width="1.8"/></svg>Unverified, with phones so far</span>
+        <span><svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="5" fill="#fff" stroke="#0f52ba" stroke-width="2.2"/></svg>Stop</span>
+      </div>
+
+      <div class="stats" id="stats">
+        <div class="stat is-red"><b data-n="confirmed">0</b><span>confirmed</span></div>
+        <div class="stat"><b data-n="unverified">0</b><span>unverified</span></div>
+        <div class="stat"><b data-n="reports">0</b><span>reports in total</span></div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-primary" onclick="showPage('map')">
+          <svg viewBox="0 0 24 24"><path d="M9 4l6 2 6-2v14l-6 2-6-2-6 2V6z"/><path d="M9 4v14M15 6v14"/></svg>Open the map
+        </button>
+        <button class="btn" onclick="openReport()">
+          <svg viewBox="0 0 24 24"><path d="M12 3l10 18H2z"/><path d="M12 10v4M12 17.5v.5"/></svg>Report a road problem
+        </button>
+        <button class="btn btn-quiet span2" onclick="showPage('access')">Ask for help boarding</button>
+      </div>
+
+      <!-- Driver 9: "will we get a reward? then maybe few will fake report it." -->
+      <div class="rule">
+        <div>
+          <h2>No rewards. Nothing counts until it is verified.</h2>
+          <p>Nobody earns points, money or rank for reporting. A spot turns red only when three different phones report it within 40 metres of each other, or one report carries a photo taken at the phone's GPS position. Until then it stays grey, with a count of how many phones have seen it.</p>
+        </div>
+        <div class="diagram" aria-hidden="true">
+          <div class="phones"><div class="phone"></div><div class="phone"></div><div class="phone"></div></div>
+          <span class="or">or</span>
+          <div class="camera"></div>
+          <div class="arrow"></div>
+          <div class="result"></div>
+        </div>
+      </div>
+
+      <div class="stops-list">
+        <h2>Stops on the 219K</h2>
+        <ol id="stop-list"></ol>
+      </div>
+
+      <p class="footer">Prototype. Everything you enter stays on this phone; nothing is sent to anyone. Nine bus drivers interviewed on 6 September 2026 shaped these changes. They have not seen this version.</p>
     </div>
-
-    <!-- Driver 9: "will we get a reward? then maybe few will fake report it." -->
-    <div class="notice notice-rule" style="margin-top:18px;">
-      <h3>No rewards. Reports only count once verified.</h3>
-      <p>Nobody earns anything for reporting — no points, no money, no rank. A spot turns red only when <strong>three different phones</strong> report it within 40 m, or one report has a <strong>photo taken at the phone's GPS position</strong>. Until then it is grey and marked unverified.</p>
-    </div>
-
-    <div class="card">
-      <h2>Stops on 219K</h2>
-      <ol id="stop-list" style="padding-left:20px;color:var(--muted);font-size:0.92rem;line-height:1.8;"></ol>
-    </div>
-
-    <p class="footer">Prototype. Everything stays on this phone — nothing is sent to anyone.<br>
-    The nine bus drivers interviewed on 6 Sep 2026 shaped these changes but have <strong>not</strong> seen this version.</p>
   </section>
 
   <!-- ================= MAP ================= -->
   <section class="page" id="page-map">
-    <div class="row" style="justify-content:space-between;margin-bottom:10px;">
-      <div>
-        <h2 style="margin:0;">Road problems on 219K</h2>
-        <div class="sub">Tap the map to place a pin, or use your GPS. Heat shows <em>confirmed</em> spots only.</div>
+    <div class="wrap">
+      <div class="maphead">
+        <div>
+          <h2>Where the problems are</h2>
+          <p>Tap the map to place a pin, or use your GPS. The heat shows confirmed spots only.</p>
+        </div>
+        <button class="btn btn-primary" onclick="openReport()">Report</button>
       </div>
-      <button class="btn btn-primary" onclick="openReport()">Report a road problem</button>
-    </div>
 
-    <div id="map"></div>
-    <div class="legend">
-      <span><i style="background:var(--red)"></i>Confirmed</span>
-      <span><i style="border:2px solid var(--muted);width:8px;height:8px;"></i>Unverified</span>
-      <span><i style="background:var(--blue)"></i>219K stop</span>
-      <span><i style="background:var(--accent)"></i>Route</span>
-    </div>
+      <div id="map"></div>
+      <div class="legend">
+        <span><i class="l-conf"></i>Confirmed</span>
+        <span><i class="l-unv"></i>Unverified</span>
+        <span><i class="l-stop"></i>Stop</span>
+        <span><i class="l-line"></i>219K</span>
+      </div>
 
-    <div id="pin-bar" class="card" style="display:none;">
-      <div class="row" style="justify-content:space-between;">
+      <div id="pin-bar" class="pinbar">
         <div><b>Pin placed</b> <span class="muted" id="pin-where"></span></div>
         <div class="row">
           <button class="btn btn-small btn-primary" onclick="openReport('map')">Report here</button>
-          <button class="btn btn-small btn-ghost" onclick="clearPin()">Remove pin</button>
+          <button class="btn btn-small btn-quiet" onclick="clearPin()">Remove pin</button>
         </div>
       </div>
-    </div>
 
-    <div class="card">
-      <div class="row" style="justify-content:space-between;">
-        <h2 style="margin:0;">Reported spots</h2>
-        <span class="muted" id="spot-count"></span>
+      <div class="list">
+        <div class="list-head">
+          <h2>Reported spots</h2>
+          <span class="muted" id="spot-count"></span>
+        </div>
+        <div id="spot-list"></div>
       </div>
-      <div id="spot-list"></div>
-    </div>
 
-    <!-- DEMO ONLY: lets one laptop pretend to be several phones so the verification rule can be checked. -->
-    <div class="notice notice-demo">
-      <b>Demo tools</b> — only for testing the verification rule on one computer. Each "+1 phone" above pretends a <em>different</em> phone reported the same spot. In real use every phone has its own id and this button does not exist.
-      <div class="row" style="margin-top:8px;">
-        <button class="btn btn-small btn-ghost" onclick="resetAll()">Reset my reports (keeps sample data)</button>
-        <span class="muted">Your phone id: <code id="device-id"></code></span>
-      </div>
+      <!-- DEMO ONLY: lets one laptop pretend to be several phones so the verification rule can be checked. -->
+      <details class="demo">
+        <summary>Demo tools (for testing on one computer)</summary>
+        <p style="margin-top:8px;">Each "+1 phone" button on an unverified spot pretends a <em>different</em> phone reported it. In real use every phone has its own id and these buttons do not exist.</p>
+        <div class="row">
+          <button class="btn btn-small btn-quiet" onclick="resetAll()">Reset my reports</button>
+          <span>Sample data stays. This phone's id: <code id="device-id"></code></span>
+        </div>
+      </details>
     </div>
   </section>
 
   <!-- ================= HELP BOARDING ================= -->
   <section class="page" id="page-access">
-    <h2>Help boarding</h2>
-    <p class="sub">For wheelchair users, people who need help with the steps, and passengers with low vision.</p>
-
-    <!-- Driver 7 refused third-party helpers; the conductor idea was refused too. We kept the feature and we are not pretending it is solved. -->
-    <div class="notice notice-open">
-      <h3>Open problem — not solved</h3>
-      <p>On 6 Sep 2026 we showed BusGo to nine bus drivers at a Hyderabad depot. One objected to bringing third-party helpers on board: extra cost, and it "would cause a bit of commotion". We proposed using the <strong>conductor</strong> instead — already on the bus, a small monthly stipend, optional tips. They refused that too: "their hands are already full."</p>
-      <p>We don't have an answer yet. We kept this page because the passengers who need it are real. <strong>Your request is saved on this phone only. Nobody is dispatched.</strong> Who actually helps you board is a staffing and funding question, not something this app has solved.</p>
-    </div>
-
-    <div class="card">
-      <h2>Request help for a trip</h2>
-      <label>What do you need?</label>
-      <div class="choice" id="need-choice">
-        <button class="btn" data-v="ramp" onclick="pick(this,'need')">Wheelchair ramp</button>
-        <button class="btn" data-v="steps" onclick="pick(this,'need')">Help with the steps</button>
-        <button class="btn" data-v="guide" onclick="pick(this,'need')">Guidance (low vision)</button>
-        <button class="btn" data-v="other" onclick="pick(this,'need')">Something else</button>
+    <div class="wrap">
+      <div class="help-head">
+        <h2>Help boarding</h2>
+        <p>For wheelchair users, people who need a hand with the steps, and passengers with low vision.</p>
       </div>
-      <label for="assist-stop">Boarding at</label>
-      <select id="assist-stop"></select>
-      <label for="assist-when">Around what time</label>
-      <input type="time" id="assist-when"/>
-      <label for="assist-note">Anything the crew should know (optional)</label>
-      <textarea id="assist-note" placeholder="e.g. travelling with a folding wheelchair"></textarea>
-      <button class="btn btn-primary btn-block" style="margin-top:14px;" onclick="saveAssist()">Save request on this phone</button>
-    </div>
 
-    <div class="card">
-      <h2>Saved requests</h2>
-      <div id="assist-list" class="muted">None yet.</div>
+      <!-- Driver 7 refused third-party helpers; the conductor idea was refused too. We kept the feature and we are not pretending it is solved. -->
+      <div class="open-problem">
+        <h3>Open problem, not solved</h3>
+        <p>On 6 September 2026 we showed BusGo to nine bus drivers at a Hyderabad depot. One objected to bringing third-party helpers on board: extra cost, and it "would cause a bit of commotion". We proposed using the conductor instead, already on the bus, with a small monthly stipend and optional tips. They refused that too: "their hands are already full."</p>
+        <p>We don't have an answer yet. We kept this page because the passengers who need it are real. <b>Your request is saved on this phone only. Nobody is dispatched.</b> Who actually helps you board is a staffing and funding question, not something this app has solved.</p>
+      </div>
+
+      <div class="form">
+        <h2>Request help for a trip</h2>
+        <label>What do you need?</label>
+        <div class="choice" id="need-choice">
+          <button class="btn" data-v="ramp" onclick="pick(this,'need')">Wheelchair ramp</button>
+          <button class="btn" data-v="steps" onclick="pick(this,'need')">Help with the steps</button>
+          <button class="btn" data-v="guide" onclick="pick(this,'need')">Guidance, low vision</button>
+          <button class="btn" data-v="other" onclick="pick(this,'need')">Something else</button>
+        </div>
+        <label for="assist-stop">Boarding at</label>
+        <select id="assist-stop"></select>
+        <label for="assist-when">Around what time</label>
+        <input type="time" id="assist-when"/>
+        <label for="assist-note">Anything the crew should know (optional)</label>
+        <textarea id="assist-note" placeholder="For example: travelling with a folding wheelchair"></textarea>
+        <button class="btn btn-primary btn-block" style="margin-top:16px;" onclick="saveAssist()">Save request on this phone</button>
+      </div>
+
+      <div class="list">
+        <div class="list-head"><h2>Saved requests</h2></div>
+        <div id="assist-list" class="muted" style="padding:12px 0;">None yet.</div>
+      </div>
     </div>
   </section>
 
 </main>
 
-<!-- ================= REPORT MODAL (the one reporting flow) ================= -->
-<div class="modal-bg" id="report-modal" onclick="if(event.target===this)closeReport()">
-  <div class="modal">
-    <div class="modal-head">
-      <h2 style="margin:0;">Report a road problem</h2>
-      <button class="btn btn-small btn-ghost" onclick="closeReport()">Close</button>
+<!-- ================= REPORT SHEET (the one reporting flow) ================= -->
+<div class="sheet-bg" id="report-modal" onclick="if(event.target===this)closeReport()">
+  <div class="sheet" role="dialog" aria-label="Report a road problem">
+    <div class="sheet-head">
+      <h2>Report a road problem</h2>
+      <button class="btn btn-small btn-quiet" onclick="closeReport()">Close</button>
     </div>
-    <div class="sub">No reward for this. It counts once three phones agree, or with a photo at your GPS position.</div>
+    <p class="note">No reward for this. It counts once three phones agree, or with a photo at your GPS position.</p>
 
     <label>What is it?</label>
-    <div class="choice" id="type-choice">
-      <button class="btn on" data-v="pothole" onclick="pick(this,'type')">Pothole</button>
-      <button class="btn" data-v="blocked" onclick="pick(this,'type')">Road blocked</button>
-      <button class="btn" data-v="waterlogging" onclick="pick(this,'type')">Waterlogging</button>
-      <button class="btn" data-v="other" onclick="pick(this,'type')">Other</button>
+    <div class="types" id="type-choice">
+      <button class="type on" data-v="pothole" onclick="pick(this,'type')">
+        <svg viewBox="0 0 24 24"><path d="M3 18l3-12h12l3 12"/><path d="M9 14c0-1.5 1.5-2.5 3-2.5s3 1 3 2.5-1.5 2.5-3 2.5-3-1-3-2.5z"/></svg>Pothole
+      </button>
+      <button class="type" data-v="blocked" onclick="pick(this,'type')">
+        <svg viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="6"/><path d="M5 14v6M19 14v6M7 8l3 6M12 8l3 6M17 8l1.5 3"/></svg>Blocked
+      </button>
+      <button class="type" data-v="waterlogging" onclick="pick(this,'type')">
+        <svg viewBox="0 0 24 24"><path d="M3 15c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/><path d="M3 19c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/><path d="M12 4l3 5a3 3 0 1 1-6 0z"/></svg>Water
+      </button>
+      <button class="type" data-v="other" onclick="pick(this,'type')">
+        <svg viewBox="0 0 24 24"><path d="M12 3l10 18H2z"/><path d="M12 10v4M12 17.5v.5"/></svg>Other
+      </button>
     </div>
 
     <label>Where</label>
-    <div class="card" style="margin:0;padding:12px;">
+    <div class="loc">
       <div id="loc-text" class="muted">No location yet.</div>
-      <div class="row" style="margin-top:10px;">
+      <div class="row">
         <button class="btn btn-small" onclick="useGPS()">Use my GPS position</button>
-        <button class="btn btn-small btn-ghost" onclick="closeReport(); showPage('map'); toast('Tap the map where the problem is.', 'info')">Tap on the map instead</button>
+        <button class="btn btn-small btn-quiet" onclick="closeReport(); showPage('map'); toast('Tap the map where the problem is.', 'info')">Tap on the map instead</button>
       </div>
     </div>
 
-    <label>Photo (optional — makes it count on its own, if taken at your GPS position)</label>
+    <label>Photo (optional; a photo at your GPS position counts on its own)</label>
     <input type="file" id="photo-input" accept="image/*" capture="environment" style="display:none" onchange="photoPicked(this)"/>
     <div class="row">
-      <button class="btn btn-small" onclick="document.getElementById('photo-input').click()">Take / choose photo</button>
+      <button class="btn btn-small" onclick="document.getElementById('photo-input').click()">Take or choose a photo</button>
       <span class="muted" id="photo-status">none</span>
     </div>
     <img id="photo-preview" class="photo-preview" alt="your photo"/>
 
     <label for="report-note">Note (optional)</label>
-    <input type="text" id="report-note" maxlength="200" placeholder="e.g. right lane, just after the signal"/>
+    <input type="text" id="report-note" maxlength="200" placeholder="For example: right lane, just after the signal"/>
 
-    <button class="btn btn-primary btn-block" style="margin-top:16px;" onclick="saveReport()">Save report</button>
+    <button class="btn btn-primary btn-block" style="margin-top:18px;" onclick="saveReport()">Save report</button>
   </div>
 </div>
 
@@ -186,19 +239,82 @@
 
 <script src="busgo.js"></script>
 <script>
-  /* ---------- page navigation ---------- */
+  /* ---------- state ---------- */
   var mapApi = null;        // created the first time the Map tab opens
   var pinMarker = null;     // the temporary pin a passenger drops by tapping
   var pending = { type: 'pothole', lat: null, lng: null, loc: null, photo: null };
   var picked  = { need: null };
+  var SHORT = ['Secunderabad', 'Paradise', 'Begumpet', 'Ameerpet', 'SR Nagar', 'Erragadda', 'BHEL', 'Moosapet', 'Balanagar', 'KPHB', 'JNTU', 'Miyapur'];
+  var firstPaint = true;      // the route strip animates and the numbers tick up only on the first paint
+  var listPainted = false;    // rows slide in only after the list has been painted once
+  var lastLocalIds = {};
 
+  /* ---------- page navigation ---------- */
   function showPage(id) {
     document.querySelectorAll('.page').forEach(function (p) { p.classList.remove('active'); });
-    document.querySelectorAll('.nav-tab').forEach(function (t) { t.classList.toggle('active', t.dataset.page === id); });
+    document.querySelectorAll('.tab').forEach(function (t) { t.classList.toggle('active', t.dataset.page === id); });
     document.getElementById('page-' + id).classList.add('active');
     window.scrollTo({ top: 0 });
     if (id === 'map') ensureMap();
     else if (mapApi) mapApi.sleep();     // hidden map: take the heat layer off until it is shown again
+  }
+
+  /* ---------- the route strip (home page) ---------- */
+  function renderStrip(groups, animate) {
+    var stops = BusGo.ROUTE.stops, n = stops.length;
+    var svg = document.getElementById('strip'), wrap = svg.parentElement;
+    var avail = wrap.clientWidth || 360, pad = 60;
+    var gap = Math.max(76, Math.floor((avail - pad * 2) / (n - 1)));   // spread out on wide screens, scroll on phones
+    var W = pad * 2 + gap * (n - 1), H = 126, y = 66;
+    wrap.classList.toggle('scrolls', W > avail + 2);
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    svg.setAttribute('width', W); svg.setAttribute('height', H);
+    svg.classList.toggle('animate', !!animate);
+    var out = '<path class="line" d="M' + pad + ' ' + y + ' L' + (W - pad) + ' ' + y + '"/>';
+    /* marks first (behind the stops), sorted so neighbours can be stacked */
+    var marks = groups.map(function (g) { return { g: g, x: pad + BusGo.routePosition(g.lat, g.lng) * gap }; })
+                      .sort(function (a, b) { return a.x - b.x; });
+    var lastX = -999, level = 0;
+    marks.forEach(function (m, i) {
+      level = (m.x - lastX < 18) ? level + 1 : 0;        // two marks on top of each other: stack them
+      lastX = m.x;
+      var top = y - 16 - level * 20, base = top - 14;
+      var cls = 'mark ' + (m.g.confirmed ? 'is-confirmed' : 'is-unverified');
+      out += '<g class="' + cls + '" style="--i:' + i + '">' +
+        '<path d="M' + (m.x - 8) + ' ' + top + ' L' + (m.x + 8) + ' ' + top + ' L' + m.x + ' ' + base + ' Z"/>' +
+        (m.g.confirmed ? '' : '<text x="' + m.x + '" y="' + (base - 4) + '">' + m.g.deviceCount + '/' + BusGo.DEVICES_NEEDED + '</text>') +
+        '<title>' + BusGo.TYPES[m.g.type].label + ' near ' + m.g.near.stop.name + ', ' + (m.g.confirmed ? 'confirmed' : m.g.reason) + '</title></g>';
+    });
+    stops.forEach(function (s, i) {
+      var x = pad + i * gap;
+      out += '<circle class="stop" style="--i:' + i + '" cx="' + x + '" cy="' + y + '" r="8"><title>' + s.name + '</title></circle>';
+      var ly = y + (i % 2 ? 44 : 28);
+      out += '<text class="stop-label' + (i % 2 ? ' sub' : '') + '" x="' + x + '" y="' + ly + '" text-anchor="middle">' + SHORT[i] + '</text>';
+    });
+    svg.innerHTML = out;
+  }
+
+  /* numbers tick up once on first load, then just update */
+  function renderStats(groups) {
+    var confirmed = groups.filter(function (g) { return g.confirmed; }).length;
+    var vals = { confirmed: confirmed, unverified: groups.length - confirmed, reports: BusGo.allReports().length };
+    document.querySelectorAll('#stats [data-n]').forEach(function (el) {
+      var target = vals[el.dataset.n], start = parseInt(el.textContent, 10) || 0;
+      if (!firstPaint || window.matchMedia('(prefers-reduced-motion: reduce)').matches) { el.textContent = target; return; }
+      var t0 = performance.now();
+      (function tick(now) {
+        var k = Math.min(1, (now - t0) / 700); k = 1 - Math.pow(1 - k, 3);
+        el.textContent = Math.round(start + (target - start) * k);
+        if (k < 1) requestAnimationFrame(tick);
+      })(t0);
+    });
+  }
+
+  function paintHome() {
+    var groups = BusGo.spots();
+    renderStrip(groups, firstPaint);
+    renderStats(groups);
+    firstPaint = false;
   }
 
   /* ---------- the map ---------- */
@@ -207,45 +323,51 @@
       mapApi = BusGo.makeMap('map', { onRefresh: renderSpots });
       mapApi.map.on('click', function (e) { placePin(e.latlng.lat, e.latlng.lng); });
     }
-    mapApi.map.invalidateSize();                                   // the tab was just made visible
+    mapApi.map.invalidateSize();
     setTimeout(function () { mapApi.map.invalidateSize(); mapApi.refresh(); }, 60);
   }
 
   function placePin(lat, lng) {
     if (pinMarker) mapApi.map.removeLayer(pinMarker);
-    pinMarker = L.circleMarker([lat, lng], { radius: 8, color: '#f5a623', fillColor: '#f5a623', fillOpacity: 0.9 }).addTo(mapApi.map);
+    pinMarker = L.circleMarker([lat, lng], { radius: 9, color: '#0f52ba', weight: 3, fillColor: '#fff', fillOpacity: 1 }).addTo(mapApi.map);
     pending.lat = lat; pending.lng = lng; pending.loc = 'map';
     var near = BusGo.nearestStop(lat, lng);
-    document.getElementById('pin-where').textContent = 'near ' + near.stop.name + ' (' + near.distanceM + ' m)';
-    document.getElementById('pin-bar').style.display = 'block';
+    document.getElementById('pin-where').textContent = 'near ' + near.stop.name + ', ' + near.distanceM + ' m away';
+    document.getElementById('pin-bar').classList.add('show');
   }
   function clearPin() {
     if (pinMarker) { mapApi.map.removeLayer(pinMarker); pinMarker = null; }
-    document.getElementById('pin-bar').style.display = 'none';
+    document.getElementById('pin-bar').classList.remove('show');
     if (pending.loc === 'map') { pending.lat = pending.lng = pending.loc = null; }
   }
 
-  /* the list under the map — one row per spot, with the verification state spelled out */
+  /* the list under the map: one row per spot, with a three-segment meter (three phones) */
   function renderSpots(groups) {
     var list = document.getElementById('spot-list');
     var confirmed = groups.filter(function (g) { return g.confirmed; }).length;
-    document.getElementById('spot-count').textContent = confirmed + ' confirmed · ' + (groups.length - confirmed) + ' unverified';
+    document.getElementById('spot-count').textContent = confirmed + ' confirmed, ' + (groups.length - confirmed) + ' unverified';
     groups.sort(function (a, b) { return (b.confirmed - a.confirmed) || (b.lastTs - a.lastTs); });
     list.innerHTML = groups.map(function (g) {
+      var key = g.type + ':' + g.lat.toFixed(4) + ':' + g.lng.toFixed(4);
+      var fresh = !lastLocalIds[key]; lastLocalIds[key] = true;
+      var meter = '<div class="meter' + (g.confirmed ? ' full' : '') + '">' +
+        [1, 2, 3].map(function (k) { return '<i class="' + (k <= g.deviceCount ? 'on' : '') + '"></i>'; }).join('') + '</div>' +
+        '<span class="meter-label">' + (g.confirmed ? (g.photoAtGps ? 'confirmed by photo' : 'confirmed') : g.deviceCount + ' of ' + BusGo.DEVICES_NEEDED + ' phones') + '</span>';
       var demo = g.confirmed ? '' :
-        '<button class="btn btn-small btn-ghost" title="DEMO: pretend another phone reported this spot" onclick="demoPlus(' + g.lat + ',' + g.lng + ',\'' + g.type + '\')">demo: +1 phone</button>';
-      return '<div class="spot">' +
+        '<button class="btn btn-small btn-quiet" title="Demo: pretend another phone reported this spot" onclick="demoPlus(' + g.lat + ',' + g.lng + ',\'' + g.type + '\')">+1 phone (demo)</button>';
+      return '<div class="spot' + (fresh && listPainted ? ' just-in' : '') + (g.confirmed ? ' is-conf' : '') + '">' +
         '<div class="dot ' + (g.confirmed ? 'confirmed' : 'unverified') + '"></div>' +
         '<div class="info"><b>' + BusGo.TYPES[g.type].label + ' near ' + g.near.stop.name + '</b>' +
-        '<span>' + (g.confirmed ? 'Confirmed — ' : 'Unverified — ') + g.reason + ' · ' + g.reports.length + ' report' + (g.reports.length === 1 ? '' : 's') + (g.seedOnly ? ' · sample data' : '') + '</span></div>' +
-        '<div class="actions"><span class="tag ' + (g.confirmed ? 'tag-red' : 'tag-grey') + '">' + (g.confirmed ? 'confirmed' : g.deviceCount + ' of ' + BusGo.DEVICES_NEEDED) + '</span>' +
-        demo + '</div></div>';
-    }).join('') || '<div class="muted">No reports yet.</div>';
+        '<span>' + (g.confirmed ? 'Confirmed: ' : 'Unverified: ') + g.reason + '. ' + g.reports.length + ' report' + (g.reports.length === 1 ? '' : 's') + (g.seedOnly ? ', sample data' : '') + '</span></div>' +
+        '<div class="side">' + meter + demo + '</div></div>';
+    }).join('') || '<div class="muted" style="padding:12px 0;">No reports yet. Tap the map to add the first one.</div>';
+    listPainted = true;
+    paintHome();
   }
 
   function demoPlus(lat, lng, type) {
     BusGo.simulateOtherDevice(type, lat, lng);
-    toast('DEMO: added a report from a pretend second phone.', 'info');
+    toast('Demo: added a report from a pretend second phone.', 'info');
   }
   function resetAll() {
     BusGo.resetLocal();
@@ -267,10 +389,10 @@
 
   function updateLocText() {
     var el = document.getElementById('loc-text');
-    if (pending.lat == null) { el.textContent = 'No location yet — use GPS or tap the map.'; return; }
+    if (pending.lat == null) { el.textContent = 'No location yet. Use GPS or tap the map.'; return; }
     var near = BusGo.nearestStop(pending.lat, pending.lng);
-    el.innerHTML = (pending.loc === 'gps' ? '<span class="ok">GPS position</span>' : 'Map pin') +
-      ' · near <b>' + near.stop.name + '</b> (' + near.distanceM + ' m) · ' + pending.lat.toFixed(5) + ', ' + pending.lng.toFixed(5);
+    el.innerHTML = (pending.loc === 'gps' ? '<span class="ok">GPS position</span>' : '<b>Map pin</b>') +
+      ' near ' + near.stop.name + ', ' + near.distanceM + ' m away <span class="muted">(' + pending.lat.toFixed(5) + ', ' + pending.lng.toFixed(5) + ')</span>';
   }
 
   function useGPS() {
@@ -293,18 +415,18 @@
       pending.photo = dataUrl;
       var img = document.getElementById('photo-preview');
       if (dataUrl) { img.src = dataUrl; img.style.display = 'block'; document.getElementById('photo-status').textContent = 'attached'; }
-      else { document.getElementById('photo-status').textContent = 'could not read photo'; }
+      else { document.getElementById('photo-status').textContent = 'could not read that photo'; }
     });
   }
 
   function pick(btn, group) {
-    btn.parentElement.querySelectorAll('.btn').forEach(function (b) { b.classList.remove('on'); });
+    btn.parentElement.querySelectorAll('button').forEach(function (b) { b.classList.remove('on'); });
     btn.classList.add('on');
     if (group === 'type') pending.type = btn.dataset.v; else picked[group] = btn.dataset.v;
   }
 
   function saveReport() {
-    if (pending.lat == null) { toast('Add a location first — GPS or a map pin.', 'error'); return; }
+    if (pending.lat == null) { toast('Add a location first: GPS or a map pin.', 'error'); return; }
     var r = BusGo.addReport({
       type: pending.type, lat: pending.lat, lng: pending.lng, source: 'passenger',
       loc: pending.loc, photo: pending.photo, note: document.getElementById('report-note').value
@@ -314,8 +436,8 @@
     pending.lat = pending.lng = pending.loc = null; pending.photo = null;
     /* say exactly what the report is worth right now */
     var g = BusGo.spots().filter(function (x) { return x.reports.some(function (y) { return y.id === r.id; }); })[0];
-    if (g && g.confirmed) toast('Saved. This spot is now CONFIRMED (' + g.reason + '). No reward — it just counts.', 'success');
-    else if (g) toast('Saved as unverified · ' + g.reason + '. No reward. It turns red when three phones agree.', 'success');
+    if (g && g.confirmed) toast('Saved. This spot is now confirmed (' + g.reason + '). No reward; it just counts.', 'success');
+    else if (g) toast('Saved as unverified, ' + g.reason + '. No reward. It turns red when three phones agree.', 'success');
     showPage('map');
   }
 
@@ -328,16 +450,16 @@
     });
     renderAssist();
     document.getElementById('assist-note').value = '';
-    toast('Saved on this phone. Nobody is dispatched — who helps you board is not solved. See the note above.', 'info');
+    toast('Saved on this phone. Nobody is dispatched; who helps you board is not solved. See the note above.', 'info');
   }
   function renderAssist() {
-    var names = { ramp: 'Wheelchair ramp', steps: 'Help with the steps', guide: 'Guidance (low vision)', other: 'Something else' };
+    var names = { ramp: 'Wheelchair ramp', steps: 'Help with the steps', guide: 'Guidance, low vision', other: 'Something else' };
     var list = BusGo.assistRequests();
     var el = document.getElementById('assist-list');
     if (!list.length) { el.textContent = 'None yet.'; return; }
     el.innerHTML = list.slice().reverse().map(function (a) {
-      return '<div class="spot"><div class="info"><b>' + names[a.need] + ' at ' + a.stop + (a.when ? ' · ' + a.when : '') + '</b>' +
-        '<span>' + (a.note || '') + ' <span class="tag tag-amber">saved on phone · not dispatched</span></span></div></div>';
+      return '<div class="spot" style="grid-template-columns:1fr;"><div class="info"><b>' + names[a.need] + ' at ' + a.stop + (a.when ? ', around ' + a.when : '') + '</b>' +
+        '<span>' + (a.note || '') + '</span><span class="saved">Saved on this phone. Not dispatched.</span></div></div>';
     }).join('');
   }
 
@@ -355,8 +477,14 @@
   document.getElementById('assist-stop').innerHTML = BusGo.ROUTE.stops.map(function (s) { return '<option>' + s.name + '</option>'; }).join('');
   document.getElementById('device-id').textContent = BusGo.deviceId();
   renderAssist();
-  BusGo.onChange(renderAssist);
-  /* if the page is opened with #map or #report in the address, jump there */
+  paintHome();
+  BusGo.onChange(function () { renderAssist(); if (!mapApi) paintHome(); });   // with a map, its refresh repaints home too
+  var resizeTimer = null;
+  window.addEventListener('resize', function () {           // the strip re-spaces itself to the new width
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function () { renderStrip(BusGo.spots(), false); }, 150);
+  });
+  /* deep links: index.html#spots, #report, #help */
   if (location.hash === '#spots') showPage('map');
   if (location.hash === '#report') { showPage('map'); openReport(); }
   if (location.hash === '#help') showPage('access');

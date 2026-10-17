@@ -73,13 +73,21 @@ The repo is `github.com/yatishferz/BusGo-Drivers-Prototype`, served by GitHub Pa
 
 Both pages are served from the same place, which is what cross-tab sync needs.
 
+## Two screens, two looks (17 Oct 2026)
+
+The passenger and driver screens are deliberately different, because the people are.
+
+- **Passenger: transit poster.** White page, black type, one blue (the blue of Indian road-information signs) for the 219K line and the buttons; red only for confirmed spots. One typeface, Bricolage Grotesque. The route is drawn like a metro-map line across the home screen with the reported spots sitting on it where they are; it draws itself once when the page loads. Everything else moves only in answer to a tap: the report sheet slides up, the three-segment meter (three phones) fills as reports arrive, a newly confirmed spot pulses once on the map.
+- **Driver: road signage.** White page, black text, huge. A black bar like the bus's destination board, STOPPED in green or MOVING in red, and two buttons that look like physical buttons: hazard-yellow POTHOLE HERE and red ROAD BLOCKED, each with a flat pictogram. On tap the button turns green with a tick for two seconds and the phone vibrates once. Nothing else moves. Typeface: Archivo.
+
 ## Files
 
 ```
 index.html     passenger screen — map, report flow, help boarding
 driver.html    driver screen — two buttons, speed lock
 busgo.js       shared: storage key, device id, verification rule, map, sample data
-busgo.css      shared styles
+busgo.css      passenger styles
+driver.css     driver styles
 archive/2026-09-06_depot_version/   the version the nine drivers saw, untouched
 storage-demo/  the two-file localStorage demo that preceded this (30 Aug 2026)
 ```

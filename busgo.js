@@ -189,6 +189,25 @@ window.BusGo = (function () {
     return { stop: best, distanceM: Math.round(bestD) };
   }
 
+  /* Where along the route is this point? Returns a number from 0 (first stop)
+     to stops.length-1 (last stop); 3.4 means "40% of the way from stop 4 to
+     stop 5". Used by the passenger page to draw spots on the route strip. */
+  function routePosition(lat, lng) {
+    var best = 0, bestD = Infinity, stops = ROUTE.stops;
+    for (var i = 0; i < stops.length - 1; i++) {
+      var a = stops[i], b = stops[i + 1];
+      /* project onto the segment a→b (flat-earth approximation is fine at city scale) */
+      var ax = a.lng, ay = a.lat, bx = b.lng, by = b.lat, px = lng, py = lat;
+      var dx = bx - ax, dy = by - ay, len2 = dx * dx + dy * dy;
+      var t = len2 ? ((px - ax) * dx + (py - ay) * dy) / len2 : 0;
+      t = Math.max(0, Math.min(1, t));
+      var cx = ax + t * dx, cy = ay + t * dy;
+      var d = distanceM(lat, lng, cy, cx);
+      if (d < bestD) { bestD = d; best = i + t; }
+    }
+    return best;
+  }
+
   /* ---------- 6. VERIFICATION — the answer to driver 9 ----------
      Reports of the same type within 40 m of each other are grouped
      into one "spot". A spot is CONFIRMED when either:
@@ -277,8 +296,9 @@ window.BusGo = (function () {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>', maxZoom: 19
     }).addTo(map);
 
+    var lineColor = opts.lineColor || '#0F52BA';
     var route = L.polyline(ROUTE.stops.map(function (s) { return [s.lat, s.lng]; }),
-               { color: '#f5a623', weight: 3, opacity: 0.75, dashArray: '8,6' }).addTo(map);
+               { color: lineColor, weight: 5, opacity: 0.9, lineCap: 'round', lineJoin: 'round' }).addTo(map);
     map.fitBounds(route.getBounds(), { padding: [24, 24], animate: false });
 
     /* Spot markers get their own pane ABOVE the heat layer, so a red pin is never hidden under a blob. */
@@ -286,12 +306,13 @@ window.BusGo = (function () {
     map.getPane('spots').style.zIndex = 450;
 
     ROUTE.stops.forEach(function (s) {
-      L.circleMarker([s.lat, s.lng], { radius: 5, color: '#4a90e2', fillColor: '#4a90e2', fillOpacity: 1, weight: 1 })
+      L.circleMarker([s.lat, s.lng], { radius: 5, color: lineColor, fillColor: '#ffffff', fillOpacity: 1, weight: 3 })
         .addTo(map).bindPopup('<strong>' + s.name + '</strong><br><span class="muted">219K stop</span>');
     });
 
     var spotLayer = L.layerGroup().addTo(map);
     var heatLayer = null;
+    var wasConfirmed = {};   // remembers which spots were already red, so a newly-red one can pulse once
 
     function refresh() {
       spotLayer.clearLayers();
@@ -299,20 +320,26 @@ window.BusGo = (function () {
       var groups = spots();
       var heatPts = [];
       groups.forEach(function (g) {
-        var color = g.confirmed ? '#e74c3c' : '#8a92ad';
-        var m = L.circleMarker([g.lat, g.lng], {
-          pane: 'spots', radius: g.confirmed ? 9 : 7, color: color, weight: 2,
-          fillColor: color, fillOpacity: g.confirmed ? 0.85 : 0.15
-        }).addTo(spotLayer);
+        var key = g.type + ':' + g.lat.toFixed(4) + ':' + g.lng.toFixed(4);
+        var justConfirmed = g.confirmed && !wasConfirmed[key];
+        wasConfirmed[key] = g.confirmed;
+        /* a plain HTML marker, so the page's CSS decides how it looks */
+        var icon = L.divIcon({
+          className: 'spot-marker ' + (g.confirmed ? 'is-confirmed' : 'is-unverified') + (justConfirmed ? ' just-confirmed' : ''),
+          html: '<span class="spot-marker-dot"></span>' + (g.confirmed ? '' : '<span class="spot-marker-count">' + g.deviceCount + '/' + DEVICES_NEEDED + '</span>'),
+          iconSize: [28, 28], iconAnchor: [14, 14], popupAnchor: [0, -12]
+        });
+        var m = L.marker([g.lat, g.lng], { icon: icon, pane: 'spots' }).addTo(spotLayer);
         var photoHtml = '';
         g.reports.forEach(function (r) {
           if (r.photo && !photoHtml) photoHtml = '<img src="' + r.photo + '" alt="report photo" style="width:100%;max-width:200px;border-radius:6px;margin-top:6px;display:block">';
         });
         m.bindPopup(
-          '<strong>' + TYPES[g.type].label + '</strong> · ' + (g.confirmed ? '<span class="ok">Confirmed</span>' : '<span class="muted">Unverified</span>') +
-          '<br><span class="muted">' + g.reason + ' · ' + g.reports.length + ' report' + (g.reports.length === 1 ? '' : 's') +
-          (g.seedOnly ? ' · sample data' : '') + '</span>' +
-          '<br><span class="muted">near ' + g.near.stop.name + ' (' + g.near.distanceM + ' m)</span>' + photoHtml
+          '<strong>' + TYPES[g.type].label + '</strong> near ' + g.near.stop.name +
+          '<br>' + (g.confirmed ? '<span class="ok">Confirmed</span>' : '<span class="muted">Unverified</span>') +
+          ' <span class="muted">(' + g.reason + ')</span>' +
+          '<br><span class="muted">' + g.reports.length + ' report' + (g.reports.length === 1 ? '' : 's') +
+          (g.seedOnly ? ', sample data' : '') + '</span>' + photoHtml
         );
         if (g.confirmed) heatPts.push([g.lat, g.lng, Math.min(1, 0.4 + 0.2 * g.reports.length)]);
       });
@@ -322,8 +349,8 @@ window.BusGo = (function () {
       if (!sz.x || !sz.y) { map.invalidateSize(); sz = map.getSize(); }
       if (heatPts.length && sz.x && sz.y) {
         if (typeof L.heatLayer === 'function') {
-          heatLayer = L.heatLayer(heatPts, { radius: 32, blur: 24, maxZoom: 16, minOpacity: 0.35,
-                        gradient: { 0.2: '#f5a623', 0.6: '#ff6b35', 1.0: '#e74c3c' } }).addTo(map);
+          heatLayer = L.heatLayer(heatPts, { radius: 34, blur: 26, maxZoom: 16, minOpacity: 0.3,
+                        gradient: { 0.2: '#ffd166', 0.6: '#f3722c', 1.0: '#d7263d' } }).addTo(map);
         } else {
           /* fallback if the heat plugin did not load: translucent circles */
           heatLayer = L.layerGroup(heatPts.map(function (p) {
@@ -352,7 +379,7 @@ window.BusGo = (function () {
     ROUTE: ROUTE, TYPES: TYPES, SEED: SEED,
     deviceId: deviceId, allReports: allReports, localReports: localReports,
     addReport: addReport, simulateOtherDevice: simulateOtherDevice, resetLocal: resetLocal,
-    distanceM: distanceM, nearestStop: nearestStop, groupReports: groupReports, spots: spots,
+    distanceM: distanceM, nearestStop: nearestStop, routePosition: routePosition, groupReports: groupReports, spots: spots,
     addAssistRequest: addAssistRequest, assistRequests: assistRequests,
     onChange: onChange, shrinkPhoto: shrinkPhoto, makeMap: makeMap
   };

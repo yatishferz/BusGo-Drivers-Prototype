@@ -2,59 +2,65 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="theme-color" content="#000000"/>
 <title>BusGo — driver</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="busgo.css"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="driver.css"/>
 </head>
-<body class="driver">
+<body>
 
-<header class="topbar">
-  <div class="logo">Bus<span>Go</span><small>driver</small></div>
-  <div class="muted" style="font-size:0.9rem;">Route <b style="color:var(--text)">219K</b></div>
+<header class="board">
+  <div>BusGo<small>DRIVER</small></div>
+  <div class="route">219K</div>
 </header>
 
 <main>
   <!-- Driver 8: say what this is, first. -->
-  <div class="what-is-this" style="margin-bottom:0;">
-    For the city bus you drive. Two buttons, one tap each, only while stopped. It does <strong>not</strong> book rides — not Rapido, not Uber.
-  </div>
+  <p class="sentence">For the city bus you drive. Two buttons, one tap each, only while stopped. It does <b>not</b> book rides. Not Rapido, not Uber.</p>
 
   <!-- Driver 6: "a bit troublesome to use this technology." So: no map, no forms, no typing, no stats. -->
-  <div class="status-line unknown" id="status">
-    <div style="white-space:nowrap;"><span class="muted">Bus is</span> <span class="state" id="state">CHECKING…</span></div>
-    <div class="muted" id="where" style="text-align:right;">waiting for GPS</div>
+  <div class="status unknown" id="status">
+    <div class="word" id="state">CHECKING</div>
+    <div class="where" id="where">Waiting for GPS<small>&nbsp;</small></div>
   </div>
 
   <button class="bigbtn pothole" id="btn-pothole" onclick="tap('pothole')" disabled>
-    POTHOLE HERE
-    <small>one tap · uses GPS</small>
+    <svg viewBox="0 0 84 84" aria-hidden="true">
+      <path class="pict-road" d="M18 70 L30 14 H54 L66 70 Z"/>
+      <path class="pict-road" d="M42 20v8M42 36v8M42 52v8"/>
+      <ellipse class="pict-hole" cx="52" cy="56" rx="11" ry="7"/>
+    </svg>
+    <span>POTHOLE HERE<small id="sub-pothole">one tap, uses GPS</small></span>
   </button>
 
   <button class="bigbtn blocked" id="btn-blocked" onclick="tap('blocked')" disabled>
-    ROAD BLOCKED
-    <small>one tap · uses GPS</small>
+    <svg viewBox="0 0 84 84" aria-hidden="true">
+      <rect class="pict-bar" x="10" y="28" width="64" height="20" rx="3"/>
+      <path class="pict-stripe" d="M22 28l-8 20M38 28l-8 20M54 28l-8 20M70 28l-8 20"/>
+      <path class="pict-road" d="M18 48v22M66 48v22"/>
+    </svg>
+    <span>ROAD BLOCKED<small id="sub-blocked">one tap, uses GPS</small></span>
   </button>
 
   <!-- Driver 3: the on-time bonus is gone. Nothing replaces it, on purpose. -->
-  <div class="driver-note" id="note">Buttons work only while the bus is stopped. No bonus. No reward. No forms.</div>
-  <div class="driver-note" id="last"></div>
+  <p class="note" id="note">Works only while the bus is stopped. No bonus. No reward. No forms.</p>
+  <p class="last" id="last"></p>
 
-  <!-- DEMO ONLY — appears when the device has no GPS speed (laptops). Lets you test the lock. -->
-  <div class="notice notice-demo" id="demo" style="display:none;">
-    <b>Demo controls</b> — this device gives no GPS speed, so pretend:
-    <div class="row" style="margin-top:8px;">
-      <button class="btn btn-small" id="demo-stopped" onclick="demoMoving(false)">Bus stopped</button>
-      <button class="btn btn-small btn-ghost" id="demo-moving" onclick="demoMoving(true)">Bus moving</button>
+  <!-- DEMO ONLY: appears when the device has no GPS speed (laptops). Lets you test the lock. -->
+  <div class="demo" id="demo" style="display:none;">
+    <b>Demo, laptop only.</b> This device gives no GPS speed, so pretend:
+    <div class="row">
+      <button class="btn on" id="demo-stopped" onclick="demoMoving(false)">Bus stopped</button>
+      <button class="btn" id="demo-moving" onclick="demoMoving(true)">Bus moving</button>
       <span>at</span>
-      <select id="demo-stop" style="width:auto;padding:8px;" onchange="render()"></select>
+      <select id="demo-stop" onchange="render()"></select>
     </div>
   </div>
 
-  <a class="driver-note" href="index.html" style="margin-top:auto;">Passenger app →</a>
+  <a class="link" href="index.html">Passenger app</a>
 </main>
-
-<div class="toast-wrap" id="toast-wrap"></div>
 
 <script src="busgo.js"></script>
 <script>
@@ -65,6 +71,7 @@
     demoMoving: false,                  // used only when speed is unknown
     busy: false                         // short cooldown after a tap so a bump doesn't send two
   };
+  var LABEL = { pothole: 'POTHOLE HERE', blocked: 'ROAD BLOCKED' };
 
   /* Is the bus moving? Real GPS speed wins; otherwise the demo toggle decides. */
   function moving() {
@@ -84,16 +91,19 @@
     var isMoving = moving();
     var p = position();
     var near = BusGo.nearestStop(p.lat, p.lng);
-    box.className = 'status-line ' + (isMoving ? 'moving' : 'stopped');
+    box.className = 'status ' + (isMoving ? 'moving' : 'stopped');
     document.getElementById('state').textContent = isMoving ? 'MOVING' : 'STOPPED';
-    document.getElementById('where').textContent =
-      'near ' + near.stop.name + (st.gps ? ' · GPS' : ' · demo position') +
-      (typeof st.speed === 'number' ? ' · ' + Math.round(st.speed * 3.6) + ' km/h' : '');
+    document.getElementById('where').innerHTML =
+      'Near ' + near.stop.name + '<small>' + (st.gps ? 'GPS' : 'demo position') +
+      (typeof st.speed === 'number' ? ', ' + Math.round(st.speed * 3.6) + ' km/h' : '') + '</small>';
     var lock = isMoving || st.busy;
     ['pothole', 'blocked'].forEach(function (t) {
       var b = document.getElementById('btn-' + t);
       b.disabled = lock;
-      b.querySelector('small').textContent = isMoving ? 'locked while moving' : (st.busy ? 'saved — wait a moment' : 'one tap · ' + (st.gps ? 'uses GPS' : 'demo position'));
+      document.getElementById('sub-' + t).textContent =
+        isMoving ? 'locked while moving'
+        : st.busy ? (b.classList.contains('done') ? 'saved' : 'wait a moment')
+        : 'one tap, ' + (st.gps ? 'uses GPS' : 'demo position');
     });
     /* demo box only when the device cannot tell us the speed */
     document.getElementById('demo').style.display = (typeof st.speed === 'number') ? 'none' : 'block';
@@ -106,23 +116,29 @@
     BusGo.addReport({ type: type, lat: p.lat, lng: p.lng, source: 'driver', loc: p.loc, photo: null, note: '' });
     var near = BusGo.nearestStop(p.lat, p.lng);
     var b = document.getElementById('btn-' + type);
+    var label = b.querySelector('span');
+    var svg = b.querySelector('svg');
+    var savedPict = svg.innerHTML;
     b.classList.add('done');
-    b.firstChild.textContent = 'SAVED ';
+    svg.innerHTML = '<path class="pict-tick" d="M20 44l16 16 30-34"/>';
+    label.firstChild.textContent = 'SAVED';
+    if (navigator.vibrate) { try { navigator.vibrate(60); } catch (e) {} }
     document.getElementById('last').textContent =
-      'Last: ' + BusGo.TYPES[type].label + ' near ' + near.stop.name + ' · ' +
-      new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) + ' · saved on this device, counts once verified';
+      'Last: ' + BusGo.TYPES[type].label + ' near ' + near.stop.name + ', ' +
+      new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) + '. Saved on this device; counts once verified.';
     st.busy = true; render();
     setTimeout(function () {
       b.classList.remove('done');
-      b.firstChild.textContent = (type === 'pothole' ? 'POTHOLE HERE' : 'ROAD BLOCKED') + ' ';
+      svg.innerHTML = savedPict;
+      label.firstChild.textContent = LABEL[type];
       st.busy = false; render();
-    }, 2500);
+    }, 2200);
   }
 
   function demoMoving(v) {
     st.demoMoving = v;
-    document.getElementById('demo-stopped').className = 'btn btn-small' + (v ? ' btn-ghost' : '');
-    document.getElementById('demo-moving').className  = 'btn btn-small' + (v ? '' : ' btn-ghost');
+    document.getElementById('demo-stopped').className = 'btn' + (v ? '' : ' on');
+    document.getElementById('demo-moving').className  = 'btn' + (v ? ' on' : '');
     render();
   }
 
@@ -134,7 +150,7 @@
       st.speed = (typeof pos.coords.speed === 'number' && !isNaN(pos.coords.speed)) ? pos.coords.speed : null;
       render();
     }, function () {
-      st.gps = false; st.speed = null; render();   // no permission / no fix → demo position
+      st.gps = false; st.speed = null; render();   // no permission / no fix: demo position
     }, { enableHighAccuracy: true, maximumAge: 2000, timeout: 8000 });
   }
 
