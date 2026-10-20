@@ -8,7 +8,8 @@
    on any device if this is ever given a real backend).
 
    The rules that came out of the 6 Sep 2026 depot interviews live here:
-     - there is NO reward of any kind for reporting (driver 9)
+     - nothing is paid for reporting; a small reward comes only after the
+       road department has checked the spot and scheduled a fix (driver 9)
      - a pothole only COUNTS once it is verified (driver 9)
      - a driver report is one tap, and only while the bus is stopped
        (driver 6 — the lock itself is in driver.html)
@@ -213,7 +214,18 @@ window.BusGo = (function () {
      into one "spot". A spot is CONFIRMED when either:
        (a) at least 3 DIFFERENT devices reported it, or
        (b) at least one report has a photo taken at a GPS position.
-     Nothing else counts. Nobody is paid for any of it.                */
+     Nothing is paid for reporting. A reward comes only after the road
+     department has checked the spot and scheduled a fix — stages 3–5
+     below, which need a road-department link this prototype does not
+     have. So the reward is never actually paid here.                  */
+  var REWARD_RS = 50;   // example figure; the real amount is the road department's call
+  var STAGES = [
+    { key: 'reported',  label: 'Reported',               real: true  },
+    { key: 'phones',    label: 'Confirmed by phones',    real: true  },
+    { key: 'checked',   label: 'Checked by road dept',   real: false },
+    { key: 'scheduled', label: 'Fix scheduled',          real: false },
+    { key: 'paid',      label: '₹' + REWARD_RS + ' paid',   real: false }
+  ];
   function groupReports(reports) {
     var groups = [];
     reports.slice().sort(function (a, b) { return a.ts - b.ts; }).forEach(function (r) {
@@ -243,23 +255,52 @@ window.BusGo = (function () {
                     : g.deviceCount + ' of ' + DEVICES_NEEDED + ' phones';
       g.lastTs      = g.reports[g.reports.length - 1].ts;
       g.near        = nearestStop(g.lat, g.lng);
+      g.stage       = g.confirmed ? 1 : 0;      // index into STAGES; 2+ would need the road department
     });
     return groups;
   }
 
   function spots() { return groupReports(allReports()); }
 
+  /* The stage of ONE report = the stage of the spot it belongs to. Used by the driver page. */
+  function stageOfReport(reportId) {
+    var gs = spots();
+    for (var i = 0; i < gs.length; i++) {
+      for (var j = 0; j < gs[i].reports.length; j++) {
+        if (gs[i].reports[j].id === reportId) return { group: gs[i], stage: gs[i].stage };
+      }
+    }
+    return null;
+  }
+
   /* ---------- 7. Boarding-help requests (passenger page) ----------
-     Saved on this device only. Nobody is dispatched — see the
-     "open problem" note on that page.                                 */
+     Third attempt at the accessibility problem (untested with anyone):
+       1. the request is shown to other passengers on the 219K, who can
+          volunteer (small thank-you);
+       2. if nobody has volunteered by the time the bus is due, the
+          conductor or driver is asked, with a stipend.
+     In this prototype the request is saved in localStorage, so "other
+     passengers" means other tabs on this device, and step 2 is a demo
+     button. Nobody is actually dispatched.                            */
   function addAssistRequest(req) {
     var list = readJSON(KEY_ASSIST, []);
-    list.push({ id: 'a-' + Date.now().toString(36), ts: Date.now(),
-                need: req.need, stop: req.stop, when: req.when, note: (req.note || '').slice(0, 200) });
+    var a = { id: 'a-' + Date.now().toString(36), ts: Date.now(), device: deviceId(),
+              need: req.need, stop: req.stop, when: req.when, note: (req.note || '').slice(0, 200),
+              status: 'asking', volunteer: null };
+    list.push(a);
     writeJSON(KEY_ASSIST, list);
-    return list;
+    announce();
+    return a;
   }
   function assistRequests() { return readJSON(KEY_ASSIST, []); }
+  function updateAssist(id, patch) {
+    var list = readJSON(KEY_ASSIST, []);
+    list.forEach(function (a) { if (a.id === id) { for (var k in patch) a[k] = patch[k]; } });
+    writeJSON(KEY_ASSIST, list);
+    announce();
+  }
+  function volunteerFor(id)   { updateAssist(id, { status: 'volunteer', volunteer: deviceId(), volunteerTs: Date.now() }); }
+  function crewFallbackFor(id) { updateAssist(id, { status: 'crew', crewTs: Date.now() }); }   // demo: "nobody volunteered in time"
 
   /* ---------- 8. Listening for changes (this tab and other tabs) ---------- */
   function onChange(cb) {
@@ -296,7 +337,7 @@ window.BusGo = (function () {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>', maxZoom: 19
     }).addTo(map);
 
-    var lineColor = opts.lineColor || '#0F52BA';
+    var lineColor = opts.lineColor || '#2563EB';
     var route = L.polyline(ROUTE.stops.map(function (s) { return [s.lat, s.lng]; }),
                { color: lineColor, weight: 5, opacity: 0.9, lineCap: 'round', lineJoin: 'round' }).addTo(map);
     map.fitBounds(route.getBounds(), { padding: [24, 24], animate: false });
@@ -350,11 +391,11 @@ window.BusGo = (function () {
       if (heatPts.length && sz.x && sz.y) {
         if (typeof L.heatLayer === 'function') {
           heatLayer = L.heatLayer(heatPts, { radius: 34, blur: 26, maxZoom: 16, minOpacity: 0.3,
-                        gradient: { 0.2: '#ffd166', 0.6: '#f3722c', 1.0: '#d7263d' } }).addTo(map);
+                        gradient: { 0.2: '#e7b65a', 0.6: '#d9822b', 1.0: '#b4232a' } }).addTo(map);
         } else {
           /* fallback if the heat plugin did not load: translucent circles */
           heatLayer = L.layerGroup(heatPts.map(function (p) {
-            return L.circle([p[0], p[1]], { radius: 90, color: 'transparent', fillColor: '#e74c3c', fillOpacity: 0.25 });
+            return L.circle([p[0], p[1]], { radius: 90, color: 'transparent', fillColor: '#b4232a', fillOpacity: 0.25 });
           })).addTo(map);
         }
       }
@@ -376,11 +417,13 @@ window.BusGo = (function () {
   /* ---------- public API ---------- */
   return {
     KEY_REPORTS: KEY_REPORTS, CLUSTER_M: CLUSTER_M, DEVICES_NEEDED: DEVICES_NEEDED, SPEED_LOCK_MS: SPEED_LOCK_MS,
+    REWARD_RS: REWARD_RS, STAGES: STAGES,
     ROUTE: ROUTE, TYPES: TYPES, SEED: SEED,
     deviceId: deviceId, allReports: allReports, localReports: localReports,
     addReport: addReport, simulateOtherDevice: simulateOtherDevice, resetLocal: resetLocal,
     distanceM: distanceM, nearestStop: nearestStop, routePosition: routePosition, groupReports: groupReports, spots: spots,
-    addAssistRequest: addAssistRequest, assistRequests: assistRequests,
+    stageOfReport: stageOfReport,
+    addAssistRequest: addAssistRequest, assistRequests: assistRequests, volunteerFor: volunteerFor, crewFallbackFor: crewFallbackFor,
     onChange: onChange, shrinkPhoto: shrinkPhoto, makeMap: makeMap
   };
 })();

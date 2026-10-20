@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-<meta name="theme-color" content="#000000"/>
+<meta name="theme-color" content="#fafaf5"/>
 <title>BusGo — driver</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap" rel="stylesheet"/>
@@ -12,17 +12,17 @@
 <body>
 
 <header class="board">
-  <div>BusGo<small>DRIVER</small></div>
+  <div>BusGo<small>driver</small></div>
   <div class="route">219K</div>
 </header>
 
 <main>
   <!-- Driver 8: say what this is, first. -->
-  <p class="sentence">For the city bus you drive. Two buttons, one tap each, only while stopped. It does <b>not</b> book rides. Not Rapido, not Uber.</p>
+  <p class="sentence">For the city bus you drive. Two buttons, one tap each, only while stopped. It does <b>not</b> book rides.</p>
 
-  <!-- Driver 6: "a bit troublesome to use this technology." So: no map, no forms, no typing, no stats. -->
+  <!-- Driver 6: "a bit troublesome to use this technology." So: no map, no forms, no typing. -->
   <div class="status unknown" id="status">
-    <div class="word" id="state">CHECKING</div>
+    <div class="word" id="state">Checking</div>
     <div class="where" id="where">Waiting for GPS<small>&nbsp;</small></div>
   </div>
 
@@ -32,7 +32,7 @@
       <path class="pict-road" d="M42 20v8M42 36v8M42 52v8"/>
       <ellipse class="pict-hole" cx="52" cy="56" rx="11" ry="7"/>
     </svg>
-    <span>POTHOLE HERE<small id="sub-pothole">one tap, uses GPS</small></span>
+    <span>Pothole here<small id="sub-pothole">one tap, uses GPS</small></span>
   </button>
 
   <button class="bigbtn blocked" id="btn-blocked" onclick="tap('blocked')" disabled>
@@ -41,12 +41,19 @@
       <path class="pict-stripe" d="M22 28l-8 20M38 28l-8 20M54 28l-8 20M70 28l-8 20"/>
       <path class="pict-road" d="M18 48v22M66 48v22"/>
     </svg>
-    <span>ROAD BLOCKED<small id="sub-blocked">one tap, uses GPS</small></span>
+    <span>Road blocked<small id="sub-blocked">one tap, uses GPS</small></span>
   </button>
 
-  <!-- Driver 3: the on-time bonus is gone. Nothing replaces it, on purpose. -->
-  <p class="note" id="note">Works only while the bus is stopped. No bonus. No reward. No forms.</p>
+  <!-- Driver 3: the on-time bonus is gone. The only money in this app comes after the road department checks a report. -->
+  <p class="note" id="note">Works only while the bus is stopped. No on-time bonus. A report earns ₹50 only after the road department checks it and schedules a fix.</p>
   <p class="last" id="last"></p>
+
+  <!-- Your reports today: read-only, so there is something worth glancing at while stopped -->
+  <div class="mine">
+    <h2>Your reports today <span id="mine-total"></span></h2>
+    <div id="mine-list"></div>
+    <p class="fine" id="mine-fine"></p>
+  </div>
 
   <!-- DEMO ONLY: appears when the device has no GPS speed (laptops). Lets you test the lock. -->
   <div class="demo" id="demo" style="display:none;">
@@ -71,7 +78,7 @@
     demoMoving: false,                  // used only when speed is unknown
     busy: false                         // short cooldown after a tap so a bump doesn't send two
   };
-  var LABEL = { pothole: 'POTHOLE HERE', blocked: 'ROAD BLOCKED' };
+  var LABEL = { pothole: 'Pothole here', blocked: 'Road blocked' };
 
   /* Is the bus moving? Real GPS speed wins; otherwise the demo toggle decides. */
   function moving() {
@@ -92,7 +99,7 @@
     var p = position();
     var near = BusGo.nearestStop(p.lat, p.lng);
     box.className = 'status ' + (isMoving ? 'moving' : 'stopped');
-    document.getElementById('state').textContent = isMoving ? 'MOVING' : 'STOPPED';
+    document.getElementById('state').textContent = isMoving ? 'Moving' : 'Stopped';
     document.getElementById('where').innerHTML =
       'Near ' + near.stop.name + '<small>' + (st.gps ? 'GPS' : 'demo position') +
       (typeof st.speed === 'number' ? ', ' + Math.round(st.speed * 3.6) + ' km/h' : '') + '</small>';
@@ -102,11 +109,34 @@
       b.disabled = lock;
       document.getElementById('sub-' + t).textContent =
         isMoving ? 'locked while moving'
-        : st.busy ? (b.classList.contains('done') ? 'saved' : 'wait a moment')
+        : st.busy ? (b.classList.contains('done') ? 'counts once verified' : 'wait a moment')
         : 'one tap, ' + (st.gps ? 'uses GPS' : 'demo position');
     });
     /* demo box only when the device cannot tell us the speed */
     document.getElementById('demo').style.display = (typeof st.speed === 'number') ? 'none' : 'block';
+    renderMine();
+  }
+
+  /* Your reports today: this device's driver taps, each with where it stands on the way to a reward. */
+  function renderMine() {
+    var me = BusGo.deviceId();
+    var dayStart = new Date(); dayStart.setHours(0, 0, 0, 0);
+    var mine = BusGo.localReports().filter(function (r) { return r.source === 'driver' && r.device === me && r.ts >= dayStart.getTime(); }).reverse();
+    var list = document.getElementById('mine-list');
+    document.getElementById('mine-total').textContent = mine.length ? mine.length + (mine.length === 1 ? ' tap' : ' taps') : '';
+    if (!mine.length) {
+      list.innerHTML = '<p class="empty">No taps yet today. Each tap shows up here with its stage.</p>';
+    } else {
+      list.innerHTML = mine.map(function (r) {
+        var s = BusGo.stageOfReport(r.id);
+        var stage = s ? s.stage : 0;
+        var g = s && s.group;
+        var pill = stage >= 1 ? '<span class="pill ok">confirmed by phones</span>' : '<span class="pill wait">' + (g ? g.deviceCount : 1) + ' of ' + BusGo.DEVICES_NEEDED + ' phones</span>';
+        return '<div class="rep"><div><b>' + BusGo.TYPES[r.type].label + ' near ' + BusGo.nearestStop(r.lat, r.lng).stop.name + '</b>' +
+          '<span>' + new Date(r.ts).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) + ' · stage ' + (stage + 1) + ' of 5: ' + BusGo.STAGES[stage].label + '</span></div>' + pill + '</div>';
+      }).join('');
+    }
+    document.getElementById('mine-fine').textContent = '₹0 paid so far. A reward is paid only after the road department checks a report and schedules a fix; that link does not exist in this prototype.';
   }
 
   /* The whole reporting flow for a driver: one tap. */
@@ -121,7 +151,7 @@
     var savedPict = svg.innerHTML;
     b.classList.add('done');
     svg.innerHTML = '<path class="pict-tick" d="M20 44l16 16 30-34"/>';
-    label.firstChild.textContent = 'SAVED';
+    label.firstChild.textContent = 'Saved';
     if (navigator.vibrate) { try { navigator.vibrate(60); } catch (e) {} }
     document.getElementById('last').textContent =
       'Last: ' + BusGo.TYPES[type].label + ' near ' + near.stop.name + ', ' +
@@ -158,6 +188,7 @@
   document.getElementById('demo-stop').innerHTML = BusGo.ROUTE.stops.map(function (s, i) { return '<option value="' + i + '"' + (i === 5 ? ' selected' : '') + '>' + s.name + '</option>'; }).join('');
   render();
   startGPS();
+  BusGo.onChange(renderMine);   // a passenger confirming one of your spots updates the stage here
 </script>
 </body>
 </html>

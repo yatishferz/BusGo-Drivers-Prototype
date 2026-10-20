@@ -1,108 +1,127 @@
 /* BusGo — driver stylesheet (driver.html).
-   Road signage: white page, black type, hazard yellow and stop red.
-   Huge, flat, physical. One typeface: Archivo. Nothing moves except
-   the button you press. */
+   Calm signage: off-white page, black type, big targets, one gold and one
+   muted red. Nothing moves except the button being pressed.
+   Palette shared with the passenger screen (borrowed from regulark.com). */
 
 :root {
-  --paper: #ffffff;
-  --ink: #000000;
-  --muted: #5b6066;
-  --rule: #d9dde2;
-  --yellow: #ffcc00;
-  --yellow-ink: #e0b000;
-  --red: #d7263d;
-  --red-ink: #a8172a;
-  --green: #0b8a3e;
-  --grey: #e9ecef;
+  --paper: #fafaf5;
+  --paper-2: #f1f0e9;
+  --card: #ffffff;
+  --ink: #111111;
+  --text: #3b3b38;
+  --muted: #6e6d67;
+  --rule: rgba(17,17,17,0.10);
+  --rule-2: #eceae3;
+  --line: #2563eb;
+  --gold: #e7b65a;
+  --gold-ink: #7a5500;
+  --red: #b4232a;
+  --green: #1d6b3f;
+  --green-bg: #e3f1e8;
+  --wait: #8a5a00;
+  --wait-bg: #fbf0d9;
   --font: 'Archivo', 'Helvetica Neue', Arial, system-ui, sans-serif;
+  --ease: cubic-bezier(.2,.7,.2,1);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { -webkit-text-size-adjust: 100%; }
 body {
   background: var(--paper); color: var(--ink);
-  font-family: var(--font); font-size: 18px; line-height: 1.35;
+  font-family: var(--font); font-size: 17px; line-height: 1.4;
   min-height: 100vh; display: flex; flex-direction: column;
 }
 button { font: inherit; color: inherit; }
-:focus-visible { outline: 4px solid var(--ink); outline-offset: 3px; }
+:focus-visible { outline: 3px solid var(--line); outline-offset: 3px; }
 
-/* black bar, like the destination board on the front of the bus */
+/* top bar */
 .board {
-  background: var(--ink); color: #fff;
+  background: rgba(250,250,245,0.94); backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--rule);
   display: flex; align-items: center; justify-content: space-between;
-  padding: 0 18px; height: 60px;
-  font-weight: 800; font-size: 1.25rem; letter-spacing: 0.02em;
-  font-variation-settings: 'wdth' 112;
+  padding: 0 18px; height: 56px;
+  font-weight: 800; font-size: 1.2rem; letter-spacing: -0.01em;
 }
-.board small { font-weight: 500; font-size: 0.85rem; letter-spacing: 0.04em; opacity: 0.8; margin-left: 10px; font-variation-settings: 'wdth' 100; }
-.board .route { background: var(--yellow); color: var(--ink); padding: 4px 12px; border-radius: 4px; font-size: 1.15rem; }
+.board small { font-weight: 500; font-size: 0.85rem; letter-spacing: 0; color: var(--muted); margin-left: 8px; }
+.board .route { background: var(--line); color: #fff; padding: 4px 11px; border-radius: 6px; font-size: 1rem; font-weight: 800; }
 
 main { flex: 1; display: flex; flex-direction: column; gap: 14px; width: 100%; max-width: 640px; margin: 0 auto; padding: 16px 16px 24px; }
 
 /* the sentence (driver 8), plain */
-.sentence { font-size: 1.05rem; line-height: 1.4; max-width: 46ch; }
-.sentence b { font-weight: 800; }
+.sentence { font-size: 1.02rem; line-height: 1.45; max-width: 46ch; color: var(--text); }
+.sentence b { font-weight: 700; color: var(--ink); }
 
-/* STOPPED / MOVING */
+/* Stopped / Moving */
 .status {
   display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 14px;
-  border: 3px solid var(--ink); border-radius: 8px; padding: 12px 14px;
+  background: var(--card); border: 1px solid var(--rule); border-radius: 12px; padding: 12px 14px;
 }
 .status .word {
-  font-weight: 900; font-size: 2rem; letter-spacing: 0.02em; line-height: 1;
-  font-variation-settings: 'wdth' 110;
-  padding: 6px 12px; border-radius: 4px; color: #fff; background: var(--muted);
+  font-weight: 800; font-size: 1.35rem; line-height: 1; letter-spacing: 0.01em;
+  padding: 10px 14px; border-radius: 8px; color: #fff; background: var(--muted);
 }
-.status.stopped .word { background: var(--green); }
-.status.moving  .word { background: var(--red); }
-.status .where { font-size: 1rem; color: var(--ink); font-weight: 500; line-height: 1.3; }
-.status .where small { display: block; color: var(--muted); font-size: 0.85rem; }
+.status.stopped .word { background: var(--green-bg); color: var(--green); }
+.status.moving  .word { background: var(--red); color: #fff; }
+.status .where { font-size: 1rem; color: var(--ink); font-weight: 600; line-height: 1.3; }
+.status .where small { display: block; color: var(--muted); font-size: 0.85rem; font-weight: 500; }
 
-/* the two buttons: physical, flat, huge */
+/* the two buttons: big, flat, calm */
 .bigbtn {
-  flex: 1; min-height: 23vh; width: 100%;
-  border: 4px solid var(--ink); border-radius: 14px; cursor: pointer;
-  box-shadow: 0 8px 0 var(--ink);
-  display: grid; grid-template-columns: 84px 1fr; align-items: center; gap: 10px;
-  padding: 14px 18px; text-align: left;
-  font-weight: 900; font-size: clamp(1.7rem, 7.5vw, 2.6rem); line-height: 0.95; letter-spacing: 0.01em;
-  font-variation-settings: 'wdth' 108;
-  transition: transform 80ms ease, box-shadow 80ms ease;
+  min-height: 21vh; width: 100%;
+  border: 1px solid rgba(17,17,17,0.12); border-radius: 16px; cursor: pointer;
+  box-shadow: 0 10px 30px -18px rgba(17,17,17,0.45);
+  display: grid; grid-template-columns: 76px 1fr; align-items: center; gap: 12px;
+  padding: 16px 20px; text-align: left;
+  font-weight: 800; font-size: clamp(1.5rem, 6vw, 2.1rem); line-height: 1.05; letter-spacing: -0.01em;
+  transition: transform 120ms var(--ease), box-shadow 120ms var(--ease), background 160ms;
   -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none;
 }
-.bigbtn small { display: block; font-weight: 500; font-size: 0.95rem; letter-spacing: 0; margin-top: 8px; font-variation-settings: 'wdth' 100; }
-.bigbtn svg { width: 84px; height: 84px; }
-.bigbtn.pothole { background: var(--yellow); color: var(--ink); }
-.bigbtn.blocked { background: var(--red); color: #fff; border-color: var(--ink); }
-.bigbtn:active:not(:disabled) { transform: translateY(6px); box-shadow: 0 2px 0 var(--ink); }
-.bigbtn:disabled { background: var(--grey); color: var(--muted); border-color: var(--rule); box-shadow: 0 8px 0 var(--rule); cursor: not-allowed; }
+.bigbtn small { display: block; font-weight: 500; font-size: 0.95rem; letter-spacing: 0; margin-top: 8px; opacity: 0.85; }
+.bigbtn svg { width: 76px; height: 76px; }
+.bigbtn.pothole { background: var(--gold); color: var(--ink); }
+.bigbtn.blocked { background: var(--red); color: #fff; }
+.bigbtn:active:not(:disabled) { transform: translateY(2px) scale(0.995); box-shadow: 0 4px 14px -10px rgba(17,17,17,0.5); }
+.bigbtn:disabled { background: var(--paper-2); color: var(--muted); box-shadow: none; cursor: not-allowed; }
 .bigbtn:disabled svg { opacity: 0.35; }
-.bigbtn.done, .bigbtn.done:disabled { background: var(--green); color: #fff; border-color: var(--ink); box-shadow: 0 8px 0 var(--ink); }
+.bigbtn.done, .bigbtn.done:disabled { background: var(--green); color: #fff; }
 .bigbtn.done svg { opacity: 1; }
 
 /* pictograms: flat, two colours */
 .pict-road { fill: none; stroke: currentColor; stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; }
 .pict-hole { fill: currentColor; }
 .pict-bar  { fill: currentColor; }
-.pict-stripe { stroke: var(--paper); stroke-width: 5; }
+.pict-stripe { stroke: var(--gold); stroke-width: 5; }
 .bigbtn.blocked .pict-stripe { stroke: var(--red); }
-.bigbtn.blocked:disabled .pict-stripe { stroke: var(--grey); }
+.bigbtn.blocked:disabled .pict-stripe { stroke: var(--paper-2); }
 .pict-tick { fill: none; stroke: #fff; stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
 
-.note { color: var(--muted); font-size: 0.95rem; text-align: left; }
-.last { font-size: 1rem; font-weight: 600; min-height: 1.4em; }
+.note { color: var(--muted); font-size: 0.95rem; }
+.last { font-size: 0.98rem; font-weight: 600; min-height: 1.4em; color: var(--ink); }
+
+/* your reports today: quiet, read-only */
+.mine { background: var(--card); border: 1px solid var(--rule); border-radius: 12px; padding: 14px 16px; }
+.mine h2 { font-size: 1.05rem; font-weight: 800; display: flex; justify-content: space-between; align-items: baseline; }
+.mine h2 span { font-size: 0.85rem; font-weight: 600; color: var(--muted); }
+.mine .empty { color: var(--muted); font-size: 0.95rem; margin-top: 6px; }
+.rep { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; padding: 10px 0; border-top: 1px solid var(--rule-2); font-size: 0.95rem; }
+.rep:first-of-type { border-top: none; }
+.rep b { display: block; color: var(--ink); font-weight: 700; }
+.rep span { color: var(--muted); font-size: 0.85rem; }
+.pill { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 0.78rem; font-weight: 700; white-space: nowrap; }
+.pill.wait { background: var(--wait-bg); color: var(--wait); }
+.pill.ok { background: var(--green-bg); color: var(--green); }
+.mine .fine { color: var(--muted); font-size: 0.85rem; margin-top: 10px; border-top: 1px solid var(--rule-2); padding-top: 10px; }
 
 /* demo box: only on devices with no GPS speed (laptops) */
-.demo { border: 2px dashed var(--rule); border-radius: 8px; padding: 12px 14px; color: var(--muted); font-size: 0.95rem; }
+.demo { border: 1px dashed rgba(17,17,17,0.25); border-radius: 12px; padding: 12px 14px; color: var(--muted); font-size: 0.95rem; }
 .demo b { color: var(--ink); }
 .demo .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
 .btn {
-  min-height: 44px; padding: 8px 14px; border-radius: 6px; cursor: pointer;
-  border: 2px solid var(--ink); background: #fff; color: var(--ink); font-weight: 700; font-size: 1rem;
+  min-height: 44px; padding: 8px 14px; border-radius: 8px; cursor: pointer;
+  border: 1.5px solid var(--ink); background: var(--card); color: var(--ink); font-weight: 700; font-size: 0.95rem;
 }
 .btn.on { background: var(--ink); color: #fff; }
-select { font: inherit; padding: 8px 10px; border: 2px solid var(--ink); border-radius: 6px; background: #fff; color: var(--ink); min-height: 44px; }
+select { font: inherit; padding: 8px 10px; border: 1.5px solid var(--ink); border-radius: 8px; background: var(--card); color: var(--ink); min-height: 44px; }
 
 .link { color: var(--muted); font-size: 0.95rem; margin-top: auto; text-align: center; }
 

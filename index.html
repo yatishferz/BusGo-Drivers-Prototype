@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-<meta name="theme-color" content="#0f52ba"/>
+<meta name="theme-color" content="#fafaf5"/>
 <title>BusGo — passenger</title>
+<script>document.documentElement.classList.add('js');</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -39,79 +40,78 @@
   <section class="page active" id="page-home">
 
     <!-- Driver 8 asked "is it like Rapido or Uber?". This is the answer, and it comes first. -->
-    <div class="band" id="what-is-this">
-      <p><span><b>BusGo</b> is for the city bus you already take: report potholes on its route, see which ones are confirmed, and ask for help boarding. It does <b>not</b> book cabs or bikes. It is not Rapido or Uber.</span></p>
+    <div class="band" id="what-is-this" data-r>
+      <p><span><b>BusGo</b> is for the city bus you already take: report potholes on its route, see which ones are confirmed, and ask for help boarding. It does <b>not</b> book cabs or bikes.</span></p>
     </div>
 
     <div class="wrap">
-      <div class="poster">
-        <h1>Potholes on the 219K.</h1>
-        <p>Secunderabad to Miyapur, twelve stops. Reported by passengers and drivers, shown on one line.</p>
-      </div>
-
-      <!-- the route strip: drawn by renderStrip() in the script below -->
-      <div class="strip-wrap"><svg class="strip" id="strip" aria-label="Route 219K with reported spots"></svg></div>
-      <div class="strip-legend">
-        <span><svg viewBox="0 0 14 14"><path d="M7 1l6 12H1z" fill="#d7263d"/></svg>Confirmed</span>
-        <span><svg viewBox="0 0 14 14"><path d="M7 2l5 10H2z" fill="#fff" stroke="#9aa3ad" stroke-width="1.8"/></svg>Unverified, with phones so far</span>
-        <span><svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="5" fill="#fff" stroke="#0f52ba" stroke-width="2.2"/></svg>Stop</span>
-      </div>
-
-      <div class="stats" id="stats">
-        <div class="stat is-red"><b data-n="confirmed">0</b><span>confirmed</span></div>
-        <div class="stat"><b data-n="unverified">0</b><span>unverified</span></div>
-        <div class="stat"><b data-n="reports">0</b><span>reports in total</span></div>
-      </div>
-
-      <div class="actions">
-        <button class="btn btn-primary" onclick="showPage('map')">
-          <svg viewBox="0 0 24 24"><path d="M9 4l6 2 6-2v14l-6 2-6-2-6 2V6z"/><path d="M9 4v14M15 6v14"/></svg>Open the map
-        </button>
-        <button class="btn" onclick="openReport()">
-          <svg viewBox="0 0 24 24"><path d="M12 3l10 18H2z"/><path d="M12 10v4M12 17.5v.5"/></svg>Report a road problem
-        </button>
-        <button class="btn btn-quiet span2" onclick="showPage('access')">Ask for help boarding</button>
-      </div>
-
-      <!-- Driver 9: "will we get a reward? then maybe few will fake report it." -->
-      <div class="rule">
-        <div>
-          <h2>No rewards. Nothing counts until it is verified.</h2>
-          <p>Nobody earns points, money or rank for reporting. A spot turns red only when three different phones report it within 40 metres of each other, or one report carries a photo taken at the phone's GPS position. Until then it stays grey, with a count of how many phones have seen it.</p>
+      <div data-g>
+        <div class="poster">
+          <h1 data-r>Potholes on the 219K.</h1>
+          <p data-r>Secunderabad to Miyapur, twelve stops. Reported by passengers and drivers, shown on one line.</p>
         </div>
-        <div class="diagram" aria-hidden="true">
-          <div class="phones"><div class="phone"></div><div class="phone"></div><div class="phone"></div></div>
-          <span class="or">or</span>
-          <div class="camera"></div>
-          <div class="arrow"></div>
-          <div class="result"></div>
+
+        <!-- the route strip: drawn by renderStrip() in the script below -->
+        <div class="strip-wrap" data-r><svg class="strip" id="strip" aria-label="Route 219K with reported spots"></svg></div>
+        <div class="strip-legend" data-r>
+          <span><svg viewBox="0 0 14 14"><path d="M7 1l6 12H1z" fill="#b4232a"/></svg>Confirmed</span>
+          <span><svg viewBox="0 0 14 14"><path d="M7 2l5 10H2z" fill="#fbf0d9" stroke="#a8781f" stroke-width="1.8"/></svg>Waiting for more phones</span>
+          <span><svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="5" fill="#fafaf5" stroke="#2563eb" stroke-width="2.2"/></svg>Stop</span>
+        </div>
+
+        <div class="stats" id="stats" data-r>
+          <div class="stat is-red"><b data-n="confirmed">0</b><span>confirmed</span></div>
+          <div class="stat"><b data-n="unverified">0</b><span>waiting</span></div>
+          <div class="stat"><b data-n="reports">0</b><span>reports in total</span></div>
+        </div>
+
+        <div class="actions" data-r>
+          <button class="btn btn-primary" onclick="showPage('map')">
+            <svg viewBox="0 0 24 24"><path d="M9 4l6 2 6-2v14l-6 2-6-2-6 2V6z"/><path d="M9 4v14M15 6v14"/></svg>Open the map
+          </button>
+          <button class="btn" onclick="openReport()">
+            <svg viewBox="0 0 24 24"><path d="M12 3l10 18H2z"/><path d="M12 10v4M12 17.5v.5"/></svg>Report a road problem
+          </button>
+          <button class="btn btn-quiet span2" onclick="showPage('access')">Ask for help boarding</button>
         </div>
       </div>
 
-      <div class="stops-list">
-        <h2>Stops on the 219K</h2>
-        <ol id="stop-list"></ol>
+      <!-- Help requests from other passengers on the 219K appear here (see help page) -->
+      <div id="asks-home"></div>
+
+      <!-- Driver 9: "will we get a reward? then maybe few will fake report it."
+           Nothing is paid for reporting. A reward comes only after the road department has checked the spot. -->
+      <div class="pipeline" data-g>
+        <h2 data-r>How a report turns into a reward.</h2>
+        <p data-r>Nothing is paid for reporting. A spot has to be confirmed by three different phones (or one photo at a GPS position), then checked by the road department. Only when they schedule a fix does the first reporter get a small reward. Inventing a pothole earns nothing, because the department never finds one.</p>
+        <div class="stages" id="stages" data-r></div>
+        <p class="fine" data-r>Steps 1 and 2 work in this prototype. Steps 3 to 5 need a link to the road department, which does not exist yet, so no reward is ever actually paid here. ₹50 is an example figure; the real amount would be the department's decision.</p>
       </div>
 
-      <p class="footer">Prototype. Everything you enter stays on this phone; nothing is sent to anyone. Nine bus drivers interviewed on 6 September 2026 shaped these changes. They have not seen this version.</p>
+      <div class="stops-list" data-g>
+        <h2 data-r>Stops on the 219K</h2>
+        <ol id="stop-list" data-r></ol>
+      </div>
+
+      <p class="footer" data-r>Prototype. Everything you enter stays on this phone; nothing is sent to anyone. Nine bus drivers interviewed on 6 September 2026 shaped these changes. They have not seen this version.</p>
     </div>
   </section>
 
   <!-- ================= MAP ================= -->
   <section class="page" id="page-map">
     <div class="wrap">
-      <div class="maphead">
+      <div class="maphead" data-g>
         <div>
-          <h2>Where the problems are</h2>
-          <p>Tap the map to place a pin, or use your GPS. The heat shows confirmed spots only.</p>
+          <h2 data-r>Where the problems are</h2>
+          <p data-r>Tap the map to place a pin, or use your GPS. The heat shows confirmed spots only.</p>
         </div>
-        <button class="btn btn-primary" onclick="openReport()">Report</button>
+        <button class="btn btn-primary" onclick="openReport()" data-r>Report</button>
       </div>
 
       <div id="map"></div>
       <div class="legend">
         <span><i class="l-conf"></i>Confirmed</span>
-        <span><i class="l-unv"></i>Unverified</span>
+        <span><i class="l-unv"></i>Waiting for phones</span>
         <span><i class="l-stop"></i>Stop</span>
         <span><i class="l-line"></i>219K</span>
       </div>
@@ -135,7 +135,7 @@
       <!-- DEMO ONLY: lets one laptop pretend to be several phones so the verification rule can be checked. -->
       <details class="demo">
         <summary>Demo tools (for testing on one computer)</summary>
-        <p style="margin-top:8px;">Each "+1 phone" button on an unverified spot pretends a <em>different</em> phone reported it. In real use every phone has its own id and these buttons do not exist.</p>
+        <p style="margin-top:8px;">Each "+1 phone" button on a waiting spot pretends a <em>different</em> phone reported it. In real use every phone has its own id and these buttons do not exist.</p>
         <div class="row">
           <button class="btn btn-small btn-quiet" onclick="resetAll()">Reset my reports</button>
           <span>Sample data stays. This phone's id: <code id="device-id"></code></span>
@@ -147,16 +147,18 @@
   <!-- ================= HELP BOARDING ================= -->
   <section class="page" id="page-access">
     <div class="wrap">
-      <div class="help-head">
-        <h2>Help boarding</h2>
-        <p>For wheelchair users, people who need a hand with the steps, and passengers with low vision.</p>
+      <div class="help-head" data-g>
+        <h2 data-r>Help boarding</h2>
+        <p data-r>For wheelchair users, people who need a hand with the steps, and passengers with low vision.</p>
       </div>
 
-      <!-- Driver 7 refused third-party helpers; the conductor idea was refused too. We kept the feature and we are not pretending it is solved. -->
-      <div class="open-problem">
-        <h3>Open problem, not solved</h3>
-        <p>On 6 September 2026 we showed BusGo to nine bus drivers at a Hyderabad depot. One objected to bringing third-party helpers on board: extra cost, and it "would cause a bit of commotion". We proposed using the conductor instead, already on the bus, with a small monthly stipend and optional tips. They refused that too: "their hands are already full."</p>
-        <p>We don't have an answer yet. We kept this page because the passengers who need it are real. <b>Your request is saved on this phone only. Nobody is dispatched.</b> Who actually helps you board is a staffing and funding question, not something this app has solved.</p>
+      <!-- Driver 7 refused third-party helpers (cost, commotion); the conductor idea was refused too (hands full).
+           This is the third attempt. Nobody has tested it. -->
+      <div class="open-problem" data-r>
+        <h3>Third attempt, untested</h3>
+        <p>On 6 September 2026 we showed BusGo to nine bus drivers at a Hyderabad depot. Paid helpers were refused: extra cost, "a bit of commotion". The conductor was refused: "their hands are already full."</p>
+        <p>So this version asks <b>the other passengers on the bus first</b>. A request shows up on their phones; whoever volunteers gets a small thank-you. Only if nobody has volunteered by the time the bus is due is the conductor or driver asked, and they would be paid a stipend for it, because it is extra work.</p>
+        <p>Nobody has tried this with drivers or passengers yet. In this prototype the request stays on this phone, so "other passengers" means other open tabs, and the fallback is a demo button.</p>
       </div>
 
       <div class="form">
@@ -172,13 +174,13 @@
         <select id="assist-stop"></select>
         <label for="assist-when">Around what time</label>
         <input type="time" id="assist-when"/>
-        <label for="assist-note">Anything the crew should know (optional)</label>
+        <label for="assist-note">Anything the helper should know (optional)</label>
         <textarea id="assist-note" placeholder="For example: travelling with a folding wheelchair"></textarea>
-        <button class="btn btn-primary btn-block" style="margin-top:16px;" onclick="saveAssist()">Save request on this phone</button>
+        <button class="btn btn-primary btn-block" style="margin-top:16px;" onclick="saveAssist()">Ask passengers on the 219K</button>
       </div>
 
       <div class="list">
-        <div class="list-head"><h2>Saved requests</h2></div>
+        <div class="list-head"><h2>Your requests</h2></div>
         <div id="assist-list" class="muted" style="padding:12px 0;">None yet.</div>
       </div>
     </div>
@@ -193,7 +195,7 @@
       <h2>Report a road problem</h2>
       <button class="btn btn-small btn-quiet" onclick="closeReport()">Close</button>
     </div>
-    <p class="note">No reward for this. It counts once three phones agree, or with a photo at your GPS position.</p>
+    <p class="note">Nothing is paid for reporting. ₹50 comes only if the road department checks the spot and schedules a fix.</p>
 
     <label>What is it?</label>
     <div class="types" id="type-choice">
@@ -220,7 +222,7 @@
       </div>
     </div>
 
-    <label>Photo (optional; a photo at your GPS position counts on its own)</label>
+    <label>Photo (optional; a photo at your GPS position confirms the spot on its own)</label>
     <input type="file" id="photo-input" accept="image/*" capture="environment" style="display:none" onchange="photoPicked(this)"/>
     <div class="row">
       <button class="btn btn-small" onclick="document.getElementById('photo-input').click()">Take or choose a photo</button>
@@ -245,9 +247,28 @@
   var pending = { type: 'pothole', lat: null, lng: null, loc: null, photo: null };
   var picked  = { need: null };
   var SHORT = ['Secunderabad', 'Paradise', 'Begumpet', 'Ameerpet', 'SR Nagar', 'Erragadda', 'BHEL', 'Moosapet', 'Balanagar', 'KPHB', 'JNTU', 'Miyapur'];
+  var NEEDS = { ramp: 'a wheelchair ramp', steps: 'help with the steps', guide: 'guidance (low vision)', other: 'help boarding' };
   var firstPaint = true;      // the route strip animates and the numbers tick up only on the first paint
   var listPainted = false;    // rows slide in only after the list has been painted once
   var lastLocalIds = {};
+
+  /* ---------- reveal: one thing after another (the same mechanism as regulark.com) ---------- */
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var revealIO = null;
+  function setupReveal() {
+    document.querySelectorAll('[data-g]').forEach(function (g) {
+      g.querySelectorAll('[data-r]').forEach(function (e, i) { e.style.setProperty('--i', i); });
+    });
+    var items = document.querySelectorAll('[data-r]:not(.in)');
+    function show(e) { e.classList.add('in'); }
+    if (reduceMotion || !('IntersectionObserver' in window)) { items.forEach(show); return; }
+    if (!revealIO) {
+      revealIO = new IntersectionObserver(function (es) {
+        es.forEach(function (e) { if (e.isIntersecting) { show(e.target); revealIO.unobserve(e.target); } });
+      }, window.matchMedia('(max-width:640px)').matches ? { threshold: 0, rootMargin: '0px 0px 8% 0px' } : { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
+    }
+    items.forEach(function (e) { revealIO.observe(e); });
+  }
 
   /* ---------- page navigation ---------- */
   function showPage(id) {
@@ -257,6 +278,7 @@
     window.scrollTo({ top: 0 });
     if (id === 'map') ensureMap();
     else if (mapApi) mapApi.sleep();     // hidden map: take the heat layer off until it is shown again
+    setupReveal();                        // blocks on the newly shown page reveal as they come into view
   }
 
   /* ---------- the route strip (home page) ---------- */
@@ -271,7 +293,6 @@
     svg.setAttribute('width', W); svg.setAttribute('height', H);
     svg.classList.toggle('animate', !!animate);
     var out = '<path class="line" d="M' + pad + ' ' + y + ' L' + (W - pad) + ' ' + y + '"/>';
-    /* marks first (behind the stops), sorted so neighbours can be stacked */
     var marks = groups.map(function (g) { return { g: g, x: pad + BusGo.routePosition(g.lat, g.lng) * gap }; })
                       .sort(function (a, b) { return a.x - b.x; });
     var lastX = -999, level = 0;
@@ -300,20 +321,29 @@
     var vals = { confirmed: confirmed, unverified: groups.length - confirmed, reports: BusGo.allReports().length };
     document.querySelectorAll('#stats [data-n]').forEach(function (el) {
       var target = vals[el.dataset.n], start = parseInt(el.textContent, 10) || 0;
-      if (!firstPaint || window.matchMedia('(prefers-reduced-motion: reduce)').matches) { el.textContent = target; return; }
-      var t0 = performance.now();
+      if (!firstPaint || reduceMotion) { el.textContent = target; return; }
+      var t0 = performance.now() + 500;      // starts as the numbers block reveals
       (function tick(now) {
-        var k = Math.min(1, (now - t0) / 700); k = 1 - Math.pow(1 - k, 3);
+        var k = Math.max(0, Math.min(1, (now - t0) / 700)); k = 1 - Math.pow(1 - k, 3);
         el.textContent = Math.round(start + (target - start) * k);
         if (k < 1) requestAnimationFrame(tick);
       })(t0);
     });
   }
 
+  /* the five stages, once (static) */
+  function renderStages() {
+    document.getElementById('stages').innerHTML = BusGo.STAGES.map(function (s, i) {
+      var sub = i === 0 ? 'one phone, one vote' : i === 1 ? 'three phones within 40 m, or a photo at GPS' : i === 2 ? 'needs a road-department link' : i === 3 ? 'their decision, their timing' : 'to the first reporter';
+      return '<div class="stage ' + (s.real ? 'real' : 'future') + (s.key === 'paid' ? ' paid' : '') + '"><b>' + s.label + '</b><small>' + sub + (s.real ? '' : ' (not in this prototype)') + '</small></div>';
+    }).join('');
+  }
+
   function paintHome() {
     var groups = BusGo.spots();
     renderStrip(groups, firstPaint);
     renderStats(groups);
+    renderAsks();
     firstPaint = false;
   }
 
@@ -329,7 +359,7 @@
 
   function placePin(lat, lng) {
     if (pinMarker) mapApi.map.removeLayer(pinMarker);
-    pinMarker = L.circleMarker([lat, lng], { radius: 9, color: '#0f52ba', weight: 3, fillColor: '#fff', fillOpacity: 1 }).addTo(mapApi.map);
+    pinMarker = L.circleMarker([lat, lng], { radius: 9, color: '#2563eb', weight: 3, fillColor: '#fafaf5', fillOpacity: 1 }).addTo(mapApi.map);
     pending.lat = lat; pending.lng = lng; pending.loc = 'map';
     var near = BusGo.nearestStop(lat, lng);
     document.getElementById('pin-where').textContent = 'near ' + near.stop.name + ', ' + near.distanceM + ' m away';
@@ -341,11 +371,19 @@
     if (pending.loc === 'map') { pending.lat = pending.lng = pending.loc = null; }
   }
 
-  /* the list under the map: one row per spot, with a three-segment meter (three phones) */
+  /* one row per spot: meter (three phones) + where it is on the road to a reward */
+  function stageLine(g) {
+    var cur = g.stage;
+    return '<div class="stageline">' + BusGo.STAGES.map(function (s, i) {
+      return '<i class="' + (i < cur ? 'done' : i === cur ? 'now' : s.real ? '' : 'future') + '"></i>';
+    }).join('') + '</div><div class="stagetext">Stage ' + (cur + 1) + ' of 5: <b>' + BusGo.STAGES[cur].label + '</b>' +
+      (cur === 1 ? '. Next: road department check (no link yet)' : '. Next: ' + BusGo.STAGES[cur + 1].label.toLowerCase()) + '</div>';
+  }
+
   function renderSpots(groups) {
     var list = document.getElementById('spot-list');
     var confirmed = groups.filter(function (g) { return g.confirmed; }).length;
-    document.getElementById('spot-count').textContent = confirmed + ' confirmed, ' + (groups.length - confirmed) + ' unverified';
+    document.getElementById('spot-count').textContent = confirmed + ' confirmed, ' + (groups.length - confirmed) + ' waiting';
     groups.sort(function (a, b) { return (b.confirmed - a.confirmed) || (b.lastTs - a.lastTs); });
     list.innerHTML = groups.map(function (g) {
       var key = g.type + ':' + g.lat.toFixed(4) + ':' + g.lng.toFixed(4);
@@ -358,7 +396,8 @@
       return '<div class="spot' + (fresh && listPainted ? ' just-in' : '') + (g.confirmed ? ' is-conf' : '') + '">' +
         '<div class="dot ' + (g.confirmed ? 'confirmed' : 'unverified') + '"></div>' +
         '<div class="info"><b>' + BusGo.TYPES[g.type].label + ' near ' + g.near.stop.name + '</b>' +
-        '<span>' + (g.confirmed ? 'Confirmed: ' : 'Unverified: ') + g.reason + '. ' + g.reports.length + ' report' + (g.reports.length === 1 ? '' : 's') + (g.seedOnly ? ', sample data' : '') + '</span></div>' +
+        '<span>' + (g.confirmed ? 'Confirmed: ' : 'Waiting: ') + g.reason + '. ' + g.reports.length + ' report' + (g.reports.length === 1 ? '' : 's') + (g.seedOnly ? ', sample data' : '') + '</span>' +
+        stageLine(g) + '</div>' +
         '<div class="side">' + meter + demo + '</div></div>';
     }).join('') || '<div class="muted" style="padding:12px 0;">No reports yet. Tap the map to add the first one.</div>';
     listPainted = true;
@@ -434,14 +473,14 @@
     closeReport();
     clearPin();
     pending.lat = pending.lng = pending.loc = null; pending.photo = null;
-    /* say exactly what the report is worth right now */
+    /* say exactly where the report stands right now */
     var g = BusGo.spots().filter(function (x) { return x.reports.some(function (y) { return y.id === r.id; }); })[0];
-    if (g && g.confirmed) toast('Saved. This spot is now confirmed (' + g.reason + '). No reward; it just counts.', 'success');
-    else if (g) toast('Saved as unverified, ' + g.reason + '. No reward. It turns red when three phones agree.', 'success');
+    if (g && g.confirmed) toast('Saved. This spot is confirmed (' + g.reason + '). Next step is the road department check, which this prototype cannot do.', 'success');
+    else if (g) toast('Saved. Waiting for more phones: ' + g.reason + '. It turns red when three agree.', 'success');
     showPage('map');
   }
 
-  /* ---------- help boarding ---------- */
+  /* ---------- help boarding: passengers first, crew as fallback ---------- */
   function saveAssist() {
     if (!picked.need) { toast('Choose what you need first.', 'error'); return; }
     BusGo.addAssistRequest({
@@ -450,16 +489,49 @@
     });
     renderAssist();
     document.getElementById('assist-note').value = '';
-    toast('Saved on this phone. Nobody is dispatched; who helps you board is not solved. See the note above.', 'info');
+    toast('Saved. Passengers on the 219K are asked first; the conductor or driver only if nobody volunteers. Prototype: nobody is actually dispatched.', 'info');
   }
+
+  function statusSteps(a) {
+    var s = a.status;
+    var rows = [
+      { label: 'Request saved on this phone', state: 'done' },
+      { label: 'Passengers on the 219K asked to volunteer (small thank-you)', state: s === 'asking' ? 'now' : 'done' },
+      { label: s === 'crew' ? 'Nobody volunteered in time: conductor or driver asked, with a stipend' : 'If nobody volunteers by the time the bus is due: conductor or driver asked, with a stipend',
+        state: s === 'crew' ? 'done' : (s === 'volunteer' ? 'off' : '') },
+      { label: s === 'volunteer' ? 'A passenger volunteered' : 'Someone meets you at the stop', state: s === 'volunteer' ? 'done' : (s === 'crew' ? 'now' : '') }
+    ];
+    return '<div class="steps">' + rows.map(function (r, i) {
+      return '<div class="step ' + r.state + '"><i>' + (r.state === 'done' ? '✓' : (i + 1)) + '</i><span>' + r.label + '</span></div>';
+    }).join('') + '</div>';
+  }
+
   function renderAssist() {
     var names = { ramp: 'Wheelchair ramp', steps: 'Help with the steps', guide: 'Guidance, low vision', other: 'Something else' };
-    var list = BusGo.assistRequests();
+    var mine = BusGo.assistRequests().filter(function (a) { return a.device === BusGo.deviceId() || !a.device; });
     var el = document.getElementById('assist-list');
-    if (!list.length) { el.textContent = 'None yet.'; return; }
-    el.innerHTML = list.slice().reverse().map(function (a) {
-      return '<div class="spot" style="grid-template-columns:1fr;"><div class="info"><b>' + names[a.need] + ' at ' + a.stop + (a.when ? ', around ' + a.when : '') + '</b>' +
-        '<span>' + (a.note || '') + '</span><span class="saved">Saved on this phone. Not dispatched.</span></div></div>';
+    if (!mine.length) { el.textContent = 'None yet.'; renderAsks(); return; }
+    el.innerHTML = mine.slice().reverse().map(function (a) {
+      var pill = a.status === 'volunteer' ? '<span class="pill ok">volunteer found</span>' : a.status === 'crew' ? '<span class="pill blue">crew asked</span>' : '<span class="pill wait">asking passengers</span>';
+      var demo = a.status === 'asking' ? '<div class="row"><button class="btn btn-small btn-quiet" onclick="BusGo.crewFallbackFor(\'' + a.id + '\')">Demo: nobody volunteered by departure</button></div>' : '';
+      return '<div class="req"><b>' + names[a.need] + ' at ' + a.stop + (a.when ? ', around ' + a.when : '') + '</b> ' + pill +
+        (a.note ? '<div class="muted" style="font-size:0.9rem;">' + a.note + '</div>' : '') + statusSteps(a) + demo + '</div>';
+    }).join('');
+    renderAsks();
+  }
+
+  /* the card other passengers see (in this prototype: other tabs on this device) */
+  function renderAsks() {
+    var box = document.getElementById('asks-home');
+    var open = BusGo.assistRequests().filter(function (a) { return a.status === 'asking' || (a.status === 'volunteer' && a.volunteer === BusGo.deviceId()); });
+    box.innerHTML = open.slice().reverse().map(function (a) {
+      var done = a.status === 'volunteer';
+      return '<div class="ask' + (done ? ' done' : '') + '">' +
+        '<h3>' + (done ? 'You said you would help' : 'Someone on the 219K needs ' + NEEDS[a.need]) + '</h3>' +
+        '<p>Boarding at <b>' + a.stop + '</b>' + (a.when ? ' around <b>' + a.when + '</b>' : '') + (a.note ? '. ' + a.note : '') + '.' +
+        (done ? ' Please be at the stop a few minutes early.' : ' Can you help them on?') + '</p>' +
+        (done ? '' : '<div class="row"><button class="btn btn-primary" onclick="BusGo.volunteerFor(\'' + a.id + '\')">I can help</button><span class="thanks">A small thank-you from BusGo if you do. In real use only passengers on that bus would see this.</span></div>') +
+        '</div>';
     }).join('');
   }
 
@@ -469,15 +541,17 @@
     t.className = 'toast ' + (type || 'success');
     t.textContent = msg;
     document.getElementById('toast-wrap').appendChild(t);
-    setTimeout(function () { t.remove(); }, 5500);
+    setTimeout(function () { t.remove(); }, 6000);
   }
 
   /* ---------- init ---------- */
   document.getElementById('stop-list').innerHTML = BusGo.ROUTE.stops.map(function (s) { return '<li>' + s.name + '</li>'; }).join('');
   document.getElementById('assist-stop').innerHTML = BusGo.ROUTE.stops.map(function (s) { return '<option>' + s.name + '</option>'; }).join('');
   document.getElementById('device-id').textContent = BusGo.deviceId();
+  renderStages();
   renderAssist();
   paintHome();
+  setupReveal();
   BusGo.onChange(function () { renderAssist(); if (!mapApi) paintHome(); });   // with a map, its refresh repaints home too
   var resizeTimer = null;
   window.addEventListener('resize', function () {           // the strip re-spaces itself to the new width
