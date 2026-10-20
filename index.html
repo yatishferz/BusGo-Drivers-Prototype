@@ -41,7 +41,7 @@
 
     <!-- Driver 8 asked "is it like Rapido or Uber?". This is the answer, and it comes first. -->
     <div class="band" id="what-is-this" data-r>
-      <p><span><b>BusGo</b> is for the city bus you already take: report potholes on its route, see which ones are confirmed, and ask for help boarding. It does <b>not</b> book cabs or bikes.</span></p>
+      <p><span><b>BusGo</b> is for the city bus you already take: report potholes on its route, see which ones are confirmed, and ask for help boarding.</span></p>
     </div>
 
     <div class="wrap">
@@ -157,7 +157,7 @@
       <div class="open-problem" data-r>
         <h3>Third attempt, untested</h3>
         <p>On 6 September 2026 we showed BusGo to nine bus drivers at a Hyderabad depot. Paid helpers were refused: extra cost, "a bit of commotion". The conductor was refused: "their hands are already full."</p>
-        <p>So this version asks <b>the other passengers on the bus first</b>. A request shows up on their phones; whoever volunteers gets a small thank-you. Only if nobody has volunteered by the time the bus is due is the conductor or driver asked, and they would be paid a stipend for it, because it is extra work.</p>
+        <p>So this version asks <b>the other passengers on the bus first</b>. A request shows up on their phones; whoever volunteers gets a coupon that makes their next ride cheaper. Only if nobody has volunteered by the time the bus is due is the conductor or driver asked, and they would be paid a stipend for it, because it is extra work.</p>
         <p>Nobody has tried this with drivers or passengers yet. In this prototype the request stays on this phone, so "other passengers" means other open tabs, and the fallback is a demo button.</p>
       </div>
 
@@ -496,7 +496,7 @@
     var s = a.status;
     var rows = [
       { label: 'Request saved on this phone', state: 'done' },
-      { label: 'Passengers on the 219K asked to volunteer (small thank-you)', state: s === 'asking' ? 'now' : 'done' },
+      { label: 'Passengers on the 219K asked to volunteer (coupon for a cheaper next ride)', state: s === 'asking' ? 'now' : 'done' },
       { label: s === 'crew' ? 'Nobody volunteered in time: conductor or driver asked, with a stipend' : 'If nobody volunteers by the time the bus is due: conductor or driver asked, with a stipend',
         state: s === 'crew' ? 'done' : (s === 'volunteer' ? 'off' : '') },
       { label: s === 'volunteer' ? 'A passenger volunteered' : 'Someone meets you at the stop', state: s === 'volunteer' ? 'done' : (s === 'crew' ? 'now' : '') }
@@ -529,8 +529,8 @@
       return '<div class="ask' + (done ? ' done' : '') + '">' +
         '<h3>' + (done ? 'You said you would help' : 'Someone on the 219K needs ' + NEEDS[a.need]) + '</h3>' +
         '<p>Boarding at <b>' + a.stop + '</b>' + (a.when ? ' around <b>' + a.when + '</b>' : '') + (a.note ? '. ' + a.note : '') + '.' +
-        (done ? ' Please be at the stop a few minutes early.' : ' Can you help them on?') + '</p>' +
-        (done ? '' : '<div class="row"><button class="btn btn-primary" onclick="BusGo.volunteerFor(\'' + a.id + '\')">I can help</button><span class="thanks">A small thank-you from BusGo if you do. In real use only passengers on that bus would see this.</span></div>') +
+        (done ? ' Please be at the stop a few minutes early. Your coupon for a cheaper next ride would be issued after the trip; not in this prototype.' : ' Can you help them on?') + '</p>' +
+        (done ? '' : '<div class="row"><button class="btn btn-primary" onclick="BusGo.volunteerFor(\'' + a.id + '\')">I can help</button><span class="thanks">You get a coupon for a cheaper next ride. In real use only passengers on that bus would see this.</span></div>') +
         '</div>';
     }).join('');
   }
